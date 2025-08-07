@@ -4,10 +4,15 @@ import { useState } from 'react';
 import Link from 'next/link';
 import LanguageSwitcher from './LanguageSwitcher';
 import { useLocalization } from '@/contexts/LocalizationContext';
+import { useCart } from '@/contexts/CartContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Header = () => {
   const { t } = useLocalization();
+  const { totalItems } = useCart();
+  const { authState, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   const navigation = [
     { name: t('nav.home'), href: '/' },
@@ -35,12 +40,12 @@ const Header = () => {
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-8">
+          <nav className="hidden md:flex space-x-4 lg:space-x-6 xl:space-x-8">
             {navigation.map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
-                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 text-sm font-medium transition-colors"
+                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 text-sm font-medium transition-colors whitespace-nowrap"
               >
                 {item.name}
               </Link>
@@ -76,23 +81,107 @@ const Header = () => {
             {/* Language Switcher */}
             <LanguageSwitcher />
 
-            {/* Auth Buttons */}
-            <div className="hidden md:flex items-center space-x-3">
-              {/* Login Button */}
-              <Link
-                href="/login"
-                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-4 py-2 text-sm font-medium transition-colors border border-gray-300 dark:border-gray-600 rounded-lg hover:border-blue-600 dark:hover:border-blue-400"
-              >
-                {t('auth.login')}
-              </Link>
+            {/* Cart Icon */}
+            <Link
+              href="/cart"
+              className="relative p-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13l-1.5-6m0 0h15M17 21a2 2 0 100-4 2 2 0 000 4zM9 21a2 2 0 100-4 2 2 0 000 4z" />
+              </svg>
+              {totalItems > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {totalItems > 99 ? '99+' : totalItems}
+                </span>
+              )}
+            </Link>
 
-              {/* Register Button */}
-              <Link
-                href="/register"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
-              >
-                {t('auth.register')}
-              </Link>
+            {/* Auth Section */}
+            <div className="hidden md:flex items-center space-x-3">
+              {authState.isAuthenticated ? (
+                /* User Menu */
+                <div className="relative">
+                  <button
+                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                    className="flex items-center space-x-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 text-sm font-medium transition-colors"
+                  >
+                    <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                      <span className="text-white text-sm font-semibold">
+                        {authState.user?.name.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <span className="hidden lg:block">{authState.user?.name}</span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  {isUserMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50">
+                      <div className="py-1">
+                        <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">{authState.user?.name}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{authState.user?.email}</p>
+                          {authState.user?.role === 'b2b' && (
+                            <span className="inline-block mt-1 px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded-full">
+                              企业用户
+                            </span>
+                          )}
+                        </div>
+                        <Link
+                          href="/profile"
+                          className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          onClick={() => setIsUserMenuOpen(false)}
+                        >
+                          个人资料
+                        </Link>
+                        <Link
+                          href="/orders"
+                          className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          onClick={() => setIsUserMenuOpen(false)}
+                        >
+                          我的订单
+                        </Link>
+                        {authState.user?.role === 'b2b' && (
+                          <Link
+                            href="/b2b"
+                            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            onClick={() => setIsUserMenuOpen(false)}
+                          >
+                            B2B专区
+                          </Link>
+                        )}
+                        <button
+                          onClick={() => {
+                            logout();
+                            setIsUserMenuOpen(false);
+                          }}
+                          className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        >
+                          退出登录
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* Login/Register Buttons */
+                <>
+                  <Link
+                    href="/auth/login"
+                    className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-4 py-2 text-sm font-medium transition-colors border border-gray-300 dark:border-gray-600 rounded-lg hover:border-blue-600 dark:hover:border-blue-400"
+                  >
+                    登录
+                  </Link>
+                  <Link
+                    href="/auth/register"
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-4 py-2 text-sm font-medium rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                  >
+                    注册
+                  </Link>
+                </>
+              )}
             </div>
 
             {/* Mobile menu button */}
@@ -120,29 +209,81 @@ const Header = () => {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className="block px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors"
+                  className="block px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors whitespace-nowrap overflow-hidden text-ellipsis"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {item.name}
                 </Link>
               ))}
 
-              {/* Mobile Auth Buttons */}
+              {/* Mobile Auth Section */}
               <div className="pt-4 space-y-2 border-t border-gray-200 dark:border-gray-700 mt-4">
-                <Link
-                  href="/login"
-                  className="block w-full text-center px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 border border-gray-300 dark:border-gray-600 rounded-lg hover:border-blue-600 dark:hover:border-blue-400 transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {t('auth.login')}
-                </Link>
-                <Link
-                  href="/register"
-                  className="block w-full text-center bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-3 py-2 text-base font-medium rounded-lg transition-all duration-300 shadow-lg"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {t('auth.register')}
-                </Link>
+                {authState.isAuthenticated ? (
+                  <>
+                    <div className="px-3 py-2">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                          <span className="text-white font-semibold">
+                            {authState.user?.name.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">{authState.user?.name}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{authState.user?.email}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <Link
+                      href="/profile"
+                      className="block px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      个人资料
+                    </Link>
+                    <Link
+                      href="/orders"
+                      className="block px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      我的订单
+                    </Link>
+                    {authState.user?.role === 'b2b' && (
+                      <Link
+                        href="/b2b"
+                        className="block px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        B2B专区
+                      </Link>
+                    )}
+                    <button
+                      onClick={() => {
+                        logout();
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="block w-full text-left px-3 py-2 text-base font-medium text-red-600 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors"
+                    >
+                      退出登录
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/auth/login"
+                      className="block w-full text-center px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 border border-gray-300 dark:border-gray-600 rounded-lg hover:border-blue-600 dark:hover:border-blue-400 transition-colors"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      登录
+                    </Link>
+                    <Link
+                      href="/auth/register"
+                      className="block w-full text-center bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-3 py-2 text-base font-medium rounded-lg transition-all duration-300 shadow-lg"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      注册
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>
