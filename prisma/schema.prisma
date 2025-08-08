@@ -1,0 +1,66 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// 管理员用户表
+model AdminUser {
+  id          String   @id @default(cuid())
+  username    String   @unique
+  name        String
+  password    String
+  role        String   // 'super_admin' | 'admin'
+  permissions String   // JSON string of permissions array
+  status      String   @default("active") // 'active' | 'inactive'
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  lastLogin   DateTime?
+
+  @@map("admin_users")
+}
+
+// API配置表
+model ApiConfig {
+  id          String   @id @default(cuid())
+  name        String   @unique // 'serpapi' | 'deepseek' | 'doubao'
+  apiKey      String
+  baseUrl     String?
+  isActive    Boolean  @default(false)
+  testResult  String?  // JSON string of test results
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("api_configs")
+}
+
+// 权限模板表
+model PermissionTemplate {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String
+  permissions String   // JSON string of permissions array
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("permission_templates")
+}
+
+// 系统日志表
+model SystemLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  details   String?  // JSON string
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@map("system_logs")
+}

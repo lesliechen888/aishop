@@ -20,39 +20,32 @@ export default function AdminLogin() {
     setError('');
 
     try {
-      // 模拟登录API调用
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // 模拟登录验证
-      if (formData.username === 'admin' && formData.password === 'admin123') {
-        // 存储登录状态
-        localStorage.setItem('adminToken', 'mock-admin-token');
-        localStorage.setItem('adminUser', JSON.stringify({
-          id: '1',
+      const response = await fetch('/api/admin/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           username: formData.username,
-          name: '超级管理员',
-          role: 'super_admin',
-          permissions: ['*'] // 全权限
-        }));
+          password: formData.password,
+        }),
+      });
 
-        router.push('/admin/dashboard');
-      } else if (formData.username === 'manager' && formData.password === 'manager123') {
-        // 普通管理员登录
-        localStorage.setItem('adminToken', 'mock-manager-token');
-        localStorage.setItem('adminUser', JSON.stringify({
-          id: '2',
-          username: formData.username,
-          name: '商品管理员',
-          role: 'admin',
-          permissions: ['products', 'orders', 'users'] // 部分权限
-        }));
+      const result = await response.json();
 
+      if (result.success) {
+        // 保存token和用户信息
+        localStorage.setItem('adminToken', result.data.token);
+        localStorage.setItem('adminUser', JSON.stringify(result.data.user));
+
+        // 跳转到仪表板
         router.push('/admin/dashboard');
       } else {
-        setError('用户名或密码错误');
+        setError(result.message);
       }
-    } catch (err) {
-      setError('登录失败，请重试');
+    } catch (error) {
+      console.error('登录失败:', error);
+      setError('登录失败，请稍后重试');
     } finally {
       setLoading(false);
     }

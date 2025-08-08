@@ -3,6 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
+import UserPermissions from './UserPermissions';
+import OrderManagement from './OrderManagement';
+import DataAnalytics from './DataAnalytics';
+import ApiSettings from './ApiSettings';
+import TestPage from './TestPage';
 
 interface AdminUser {
   id: string;
@@ -19,6 +24,8 @@ interface AdminLayoutProps {
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const [user, setUser] = useState<AdminUser | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null);
+  const [currentView, setCurrentView] = useState<string>('dashboard');
   const router = useRouter();
   const pathname = usePathname();
 
@@ -35,67 +42,144 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     router.push('/admin/login');
   };
 
+  const handleMenuClick = (item: any, child?: any) => {
+    if (item.type === 'single') {
+      setCurrentView(item.key);
+      setActiveSubmenu(null);
+    } else if (item.type === 'group') {
+      if (child) {
+        setCurrentView(child.key);
+        setActiveSubmenu(item.key);
+      } else {
+        setActiveSubmenu(activeSubmenu === item.key ? null : item.key);
+      }
+    }
+  };
+
+  const renderContent = () => {
+    switch (currentView) {
+      case 'user-permissions':
+        return <UserPermissions />;
+      case 'orders':
+        return <OrderManagement />;
+      case 'analytics':
+        return <DataAnalytics />;
+      case 'api-settings':
+        return <ApiSettings />;
+      case 'content':
+        return <TestPage />;
+      case 'countries':
+        return <TestPage />;
+      case 'basic-settings':
+        return <TestPage />;
+      case 'dashboard':
+      default:
+        return children;
+    }
+  };
+
   // 导航菜单配置
   const menuItems = [
     {
       name: '仪表板',
-      href: '/admin/dashboard',
+      key: 'dashboard',
       icon: '📊',
-      permission: '*'
+      permission: '*',
+      type: 'single'
     },
     {
       name: '订单管理',
-      href: '/admin/orders',
+      key: 'orders',
       icon: '📦',
-      permission: 'orders'
-    },
-    {
-      name: '用户管理',
-      href: '/admin/users',
-      icon: '👥',
-      permission: 'users'
-    },
-    {
-      name: '商品管理',
-      href: '/admin/products',
-      icon: '🛍️',
-      permission: 'products'
-    },
-    {
-      name: '商品采集',
-      href: '/admin/product-collection',
-      icon: '🔄',
-      permission: 'product_collection'
-    },
-    {
-      name: '图像处理',
-      href: '/admin/image-processing',
-      icon: '🖼️',
-      permission: 'image_processing'
-    },
-    {
-      name: '内容管理',
-      href: '/admin/content',
-      icon: '📝',
-      permission: 'content'
+      permission: 'order_management',
+      type: 'single'
     },
     {
       name: '数据分析',
-      href: '/admin/analytics',
+      key: 'analytics',
       icon: '📈',
-      permission: 'analytics'
+      permission: 'data_analysis',
+      type: 'single'
+    },
+    {
+      name: '用户管理',
+      key: 'users',
+      icon: '👥',
+      permission: '*',
+      type: 'group',
+      children: [
+        {
+          name: '权限管理',
+          key: 'user-permissions',
+          permission: 'user_management'
+        }
+      ]
+    },
+    {
+      name: '商品管理',
+      key: 'products',
+      icon: '🛍️',
+      permission: 'products',
+      type: 'group',
+      children: [
+        {
+          name: '商品列表',
+          key: 'product-list',
+          permission: 'products'
+        },
+        {
+          name: '商品采集',
+          key: 'product-collection',
+          permission: 'product_collection'
+        }
+      ]
+    },
+    {
+      name: '图像处理',
+      key: 'image-processing',
+      icon: '🖼️',
+      permission: 'image_processing',
+      type: 'single'
+    },
+    {
+      name: '内容管理',
+      key: 'content',
+      icon: '📝',
+      permission: 'content',
+      type: 'single'
+    },
+    {
+      name: '数据分析',
+      key: 'analytics',
+      icon: '📈',
+      permission: 'analytics',
+      type: 'single'
     },
     {
       name: '多国家设置',
-      href: '/admin/countries',
+      key: 'countries',
       icon: '🌍',
-      permission: 'countries'
+      permission: 'countries',
+      type: 'single'
     },
     {
       name: '系统设置',
-      href: '/admin/settings',
+      key: 'settings',
       icon: '⚙️',
-      permission: 'settings'
+      permission: 'settings',
+      type: 'group',
+      children: [
+        {
+          name: 'API配置',
+          key: 'api-settings',
+          permission: 'settings'
+        },
+        {
+          name: '基础设置',
+          key: 'basic-settings',
+          permission: 'settings'
+        }
+      ]
     },
     {
       name: '权限管理',
@@ -121,9 +205,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   return (
     <div className="min-h-screen bg-gray-100">
       {/* 侧边栏 */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform ${
+      <div className={`fixed inset-y-0 left-0 z-50 w-56 bg-white shadow-lg transform ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}>
+      } transition-transform duration-300 ease-in-out lg:translate-x-0`}>
         
         {/* Logo */}
         <div className="flex items-center justify-center h-16 px-4 bg-blue-600">
@@ -134,18 +218,59 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <nav className="mt-8">
           <div className="px-4 space-y-2">
             {filteredMenuItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                  pathname === item.href
-                    ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                <span className="mr-3 text-lg">{item.icon}</span>
-                {item.name}
-              </Link>
+              <div key={item.key}>
+                {item.type === 'single' ? (
+                  <button
+                    onClick={() => handleMenuClick(item)}
+                    className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                      currentView === item.key
+                        ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <span className="mr-3 text-lg">{item.icon}</span>
+                    {item.name}
+                  </button>
+                ) : (
+                  <div>
+                    <button
+                      onClick={() => handleMenuClick(item)}
+                      className={`w-full flex items-center justify-between px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                        activeSubmenu === item.key
+                          ? 'bg-blue-50 text-blue-700'
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      <div className="flex items-center">
+                        <span className="mr-3 text-lg">{item.icon}</span>
+                        {item.name}
+                      </div>
+                      <span className={`transform transition-transform ${
+                        activeSubmenu === item.key ? 'rotate-90' : ''
+                      }`}>
+                        ▶
+                      </span>
+                    </button>
+                    {activeSubmenu === item.key && item.children && (
+                      <div className="ml-6 mt-2 space-y-1">
+                        {item.children.map((child: any) => (
+                          <button
+                            key={child.key}
+                            onClick={() => handleMenuClick(item, child)}
+                            className={`w-full text-left px-4 py-2 text-sm rounded-lg transition-colors ${
+                              currentView === child.key
+                                ? 'bg-blue-100 text-blue-700'
+                                : 'text-gray-600 hover:bg-gray-50'
+                            }`}
+                          >
+                            {child.name}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             ))}
           </div>
         </nav>
@@ -175,9 +300,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       </div>
 
       {/* 主内容区域 */}
-      <div className="lg:pl-64">
+      <div className="lg:ml-56">
         {/* 顶部导航栏 */}
-        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+        <div className="flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
           {/* 移动端菜单按钮 */}
           <button
             type="button"
@@ -231,9 +356,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </div>
 
         {/* 页面内容 */}
-        <main className="py-8">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            {children}
+        <main className="pt-4 pb-2">
+          <div className="px-4 sm:px-6 lg:px-8">
+            {renderContent()}
           </div>
         </main>
       </div>
