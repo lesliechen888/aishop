@@ -12,6 +12,7 @@
     "@heroicons/react": "^2.2.0",
     "@prisma/client": "^6.13.0",
     "bcryptjs": "^3.0.2",
+    "cheerio": "^1.0.0",
     "jsonwebtoken": "^9.0.2",
     "next": "15.4.5",
     "prisma": "^6.13.0",

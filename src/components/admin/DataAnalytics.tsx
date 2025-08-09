@@ -291,11 +291,26 @@ export default function DataAnalytics() {
                 <div key={product.id} className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <span className="text-sm font-medium text-gray-500">#{index + 1}</span>
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-10 h-10 rounded-md object-cover"
-                    />
+                    <div className="relative w-10 h-10">
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="w-10 h-10 rounded-md object-cover bg-gray-100"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = `https://via.placeholder.com/40x40/f3f4f6/9ca3af?text=${encodeURIComponent(product.name.slice(0, 2))}`;
+                        }}
+                        onLoad={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.opacity = '1';
+                        }}
+                        style={{ opacity: 0, transition: 'opacity 0.3s ease' }}
+                      />
+                      {/* 加载占位符 */}
+                      <div className="absolute inset-0 bg-gray-200 rounded-md flex items-center justify-center">
+                        <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+                      </div>
+                    </div>
                     <div>
                       <p className="text-sm font-medium text-gray-900">{product.name}</p>
                       <p className="text-sm text-gray-500">销量: {product.sales}</p>

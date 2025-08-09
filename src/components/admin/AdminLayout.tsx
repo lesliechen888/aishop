@@ -7,6 +7,9 @@ import UserPermissions from './UserPermissions';
 import OrderManagement from './OrderManagement';
 import DataAnalytics from './DataAnalytics';
 import ApiSettings from './ApiSettings';
+import AfterSales from './AfterSales';
+import SmartCollection from './SmartCollection';
+import CollectionBox from './CollectionBox';
 import TestPage from './TestPage';
 
 interface AdminUser {
@@ -15,6 +18,22 @@ interface AdminUser {
   name: string;
   role: 'super_admin' | 'admin';
   permissions: string[];
+}
+
+// 菜单项类型定义
+interface SubMenuItem {
+  name: string
+  key: string
+  permission: string
+}
+
+interface MenuItem {
+  name: string
+  key: string
+  icon: string
+  permission: string
+  type: 'single' | 'group'
+  children?: SubMenuItem[]
 }
 
 interface AdminLayoutProps {
@@ -62,8 +81,14 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         return <UserPermissions />;
       case 'orders':
         return <OrderManagement />;
+      case 'after-sales':
+        return <AfterSales />;
       case 'analytics':
         return <DataAnalytics />;
+      case 'smart-collection':
+        return <SmartCollection />;
+      case 'collection-box':
+        return <CollectionBox />;
       case 'api-settings':
         return <ApiSettings />;
       case 'content':
@@ -79,7 +104,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   };
 
   // 导航菜单配置
-  const menuItems = [
+  const menuItems: MenuItem[] = [
     {
       name: '仪表板',
       key: 'dashboard',
@@ -91,6 +116,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       name: '订单管理',
       key: 'orders',
       icon: '📦',
+      permission: 'order_management',
+      type: 'single'
+    },
+    {
+      name: '售后工作台',
+      key: 'after-sales',
+      icon: '🛠️',
       permission: 'order_management',
       type: 'single'
     },
@@ -128,8 +160,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           permission: 'products'
         },
         {
-          name: '商品采集',
-          key: 'product-collection',
+          name: '智能采集',
+          key: 'smart-collection',
+          permission: 'product_collection'
+        },
+        {
+          name: '采集箱',
+          key: 'collection-box',
           permission: 'product_collection'
         }
       ]
@@ -146,13 +183,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       key: 'content',
       icon: '📝',
       permission: 'content',
-      type: 'single'
-    },
-    {
-      name: '数据分析',
-      key: 'analytics',
-      icon: '📈',
-      permission: 'analytics',
       type: 'single'
     },
     {
@@ -183,9 +213,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     },
     {
       name: '权限管理',
-      href: '/admin/permissions',
+      key: 'permissions',
       icon: '🔐',
-      permission: 'super_admin_only'
+      permission: 'super_admin_only',
+      type: 'single'
     }
   ];
 

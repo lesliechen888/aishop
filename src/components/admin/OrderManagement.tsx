@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { adminApiClient } from '@/utils/apiClient'
+import { getImageFallback, withErrorHandling } from '@/utils/errorHandler'
 
 interface Order {
   id: string
@@ -32,6 +34,11 @@ interface OrderItem {
   quantity: number
   unitPrice: number
   totalPrice: number
+  // 新增商品规格信息
+  color?: string
+  size?: string
+  material?: string
+  style?: string
 }
 
 interface OrderStats {
@@ -433,35 +440,92 @@ export default function OrderManagement() {
                       )}
                     </div>
                   </div>
+
+                  {/* 商品信息预览 */}
+                  <div className="mt-3 border-t border-gray-100 pt-3">
+                    <div className="flex items-center space-x-3 overflow-x-auto">
+                      {order.items.slice(0, 3).map((item) => (
+                        <div key={`order-${order.id}-item-${item.id}`} className="flex items-center space-x-2 flex-shrink-0 bg-gray-50 rounded-lg p-2">
+                          <img
+                            src={item.productImage}
+                            alt={item.productName}
+                            className="w-12 h-12 object-cover rounded-md bg-gray-100"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.src = getImageFallback(item.productName, 48, 48);
+                            }}
+                            loading="lazy"
+                          />
+                          <div className="min-w-0">
+                            <p className="text-xs font-medium text-gray-900 truncate max-w-24">{item.productName}</p>
+                            <div className="flex items-center space-x-1 text-xs text-gray-500">
+                              {item.color && <span>{item.color}</span>}
+                              {item.size && <span>/{item.size}</span>}
+                              <span>×{item.quantity}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      {order.items.length > 3 && (
+                        <div className="flex-shrink-0 text-xs text-gray-500 bg-gray-100 rounded-lg px-2 py-1">
+                          +{order.items.length - 3}更多
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
-                <div className="ml-4 flex items-center space-x-2">
+                <div className="ml-4 flex items-center space-x-2 flex-wrap">
                   <button
                     onClick={() => {
                       setSelectedOrder(order)
                       setShowOrderDetail(true)
                     }}
-                    className="text-blue-600 hover:text-blue-900 text-sm font-medium"
+                    className="text-blue-600 hover:text-blue-900 text-sm font-medium px-2 py-1 rounded border border-blue-200 hover:bg-blue-50"
                   >
                     👁️ 查看
                   </button>
 
                   {order.status === 'pending' && (
-                    <button
-                      onClick={() => updateOrderStatus(order.id, 'confirmed')}
-                      className="text-green-600 hover:text-green-900 text-sm font-medium"
-                    >
-                      ✅ 确认
-                    </button>
+                    <>
+                      <button
+                        onClick={() => updateOrderStatus(order.id, 'confirmed')}
+                        className="text-green-600 hover:text-green-900 text-sm font-medium px-2 py-1 rounded border border-green-200 hover:bg-green-50"
+                      >
+                        ✅ 确认
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (confirm('确定要取消这个订单吗？')) {
+                            updateOrderStatus(order.id, 'cancelled')
+                          }
+                        }}
+                        className="text-red-600 hover:text-red-900 text-sm font-medium px-2 py-1 rounded border border-red-200 hover:bg-red-50"
+                      >
+                        ❌ 取消
+                      </button>
+                    </>
                   )}
 
                   {order.status === 'confirmed' && (
-                    <button
-                      onClick={() => updateOrderStatus(order.id, 'processing')}
-                      className="text-purple-600 hover:text-purple-900 text-sm font-medium"
-                    >
-                      🔄 处理
-                    </button>
+                    <>
+                      <button
+                        onClick={() => updateOrderStatus(order.id, 'processing')}
+                        className="text-purple-600 hover:text-purple-900 text-sm font-medium px-2 py-1 rounded border border-purple-200 hover:bg-purple-50"
+                      >
+                        🔄 处理
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (confirm('确定要取消这个订单吗？')) {
+                            updateOrderStatus(order.id, 'cancelled')
+                          }
+                        }}
+                        className="text-red-600 hover:text-red-900 text-sm font-medium px-2 py-1 rounded border border-red-200 hover:bg-red-50"
+                      >
+                        ❌ 取消
+                      </button>
+                    </>
                   )}
 
                   {order.status === 'processing' && (
@@ -473,9 +537,30 @@ export default function OrderManagement() {
                           updateOrderStatus(order.id, 'shipped')
                         }
                       }}
-                      className="text-indigo-600 hover:text-indigo-900 text-sm font-medium"
+                      className="text-indigo-600 hover:text-indigo-900 text-sm font-medium px-2 py-1 rounded border border-indigo-200 hover:bg-indigo-50"
                     >
                       🚚 发货
+                    </button>
+                  )}
+
+                  {order.status === 'shipped' && (
+                    <button
+                      onClick={() => updateOrderStatus(order.id, 'delivered')}
+                      className="text-green-600 hover:text-green-900 text-sm font-medium px-2 py-1 rounded border border-green-200 hover:bg-green-50"
+                    >
+                      📦 确认送达
+                    </button>
+                  )}
+
+                  {(order.status === 'delivered' || order.status === 'cancelled') && (
+                    <button
+                      onClick={() => {
+                        // 跳转到售后工作台
+                        window.open(`/admin/after-sales?orderId=${order.id}`, '_blank')
+                      }}
+                      className="text-orange-600 hover:text-orange-900 text-sm font-medium px-2 py-1 rounded border border-orange-200 hover:bg-orange-50"
+                    >
+                      🛠️ 售后
                     </button>
                   )}
                 </div>

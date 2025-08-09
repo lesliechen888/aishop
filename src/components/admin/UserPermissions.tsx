@@ -148,11 +148,15 @@ export default function UserPermissions() {
     try {
       const response = await fetch('/api/admin/users')
       const data = await response.json()
-      if (data.success) {
-        setUsers(data.users)
+      if (data.success && Array.isArray(data.data)) {
+        setUsers(data.data)
+      } else {
+        console.error('API返回数据格式错误:', data)
+        setUsers([])
       }
     } catch (error) {
       console.error('获取用户列表失败:', error)
+      setUsers([])
     } finally {
       setLoading(false)
     }
@@ -162,11 +166,15 @@ export default function UserPermissions() {
     try {
       const response = await fetch('/api/admin/permission-templates')
       const data = await response.json()
-      if (data.success) {
-        setTemplates(data.templates)
+      if (data.success && Array.isArray(data.data)) {
+        setTemplates(data.data)
+      } else {
+        console.error('权限模板API返回数据格式错误:', data)
+        setTemplates([])
       }
     } catch (error) {
       console.error('获取权限模板失败:', error)
+      setTemplates([])
     }
   }
 
@@ -174,16 +182,20 @@ export default function UserPermissions() {
     try {
       const response = await fetch('/api/admin/roles')
       const data = await response.json()
-      if (data.success) {
+      if (data.success && Array.isArray(data.roles)) {
         setRoles(data.roles)
+      } else {
+        console.error('角色API返回数据格式错误:', data)
+        setRoles([])
       }
     } catch (error) {
       console.error('获取角色列表失败:', error)
+      setRoles([])
     }
   }
 
   // 过滤用户
-  const filteredUsers = users.filter(user => {
+  const filteredUsers = (users || []).filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.username.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesRole = !filterRole || user.role === filterRole
@@ -215,7 +227,7 @@ export default function UserPermissions() {
               { key: 'templates', label: '权限模板', count: templates.length }
             ].map((tab) => (
               <button
-                key={tab.key}
+                key={`tab-${tab.key}`}
                 onClick={() => setActiveTab(tab.key as any)}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === tab.key
@@ -279,7 +291,7 @@ export default function UserPermissions() {
           <div className="bg-white shadow overflow-hidden sm:rounded-md">
             <ul className="divide-y divide-gray-200">
               {filteredUsers.map((user) => (
-                <li key={user.id} className="px-6 py-4">
+                <li key={`user-${user.id}`} className="px-6 py-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
                       <div className="flex-shrink-0">
@@ -472,7 +484,7 @@ export default function UserPermissions() {
                   <div className="flex flex-wrap gap-2">
                     {templates.map((template) => (
                       <button
-                        key={template.id}
+                        key={`template-${template.id}`}
                         type="button"
                         onClick={() => setUserFormData(prev => ({ ...prev, permissions: template.permissions }))}
                         className="px-3 py-1 text-xs font-medium rounded-full border border-gray-300 hover:bg-gray-50"
@@ -488,11 +500,11 @@ export default function UserPermissions() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">权限设置</label>
                   <div className="space-y-4">
                     {Object.entries(permissionsByCategory).map(([category, permissions]) => (
-                      <div key={category}>
+                      <div key={`category-${category}`}>
                         <h4 className="text-sm font-medium text-gray-900 mb-2">{category}</h4>
                         <div className="space-y-2 pl-4">
                           {permissions.map((permission) => (
-                            <label key={permission.id} className="flex items-center">
+                            <label key={`permission-${category}-${permission.id}`} className="flex items-center">
                               <input
                                 type="checkbox"
                                 checked={userFormData.permissions.includes(permission.id)}
