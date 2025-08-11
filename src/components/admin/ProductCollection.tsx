@@ -56,6 +56,7 @@ export default function ProductCollection() {
   useEffect(() => {
     if (singleUrl) {
       const detection = platformDetector.detectPlatform(singleUrl)
+      console.log('平台检测结果:', detection)
       setDetectedPlatform(detection.platform)
     } else {
       setDetectedPlatform(null)
@@ -82,28 +83,26 @@ export default function ProductCollection() {
 
     setLoading(true)
     try {
-      const response = await fetch('/api/admin/collection/start', {
+      const response = await fetch('/api/collection/collect', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          method: 'single',
-          platform: detectedPlatform,
-          urls: [singleUrl],
-          settings
+          url: singleUrl
         })
       })
 
       const result = await response.json()
       if (result.success) {
-        alert('采集任务已启动')
+        alert('商品采集成功！')
         setSingleUrl('')
-        fetchTasks()
+        setDetectedPlatform(null)
+        // 可以在这里添加更新采集箱的逻辑
       } else {
-        alert(result.message || '启动采集失败')
+        alert(result.error || '采集失败')
       }
     } catch (error) {
-      console.error('启动采集失败:', error)
-      alert('启动采集失败')
+      console.error('采集失败:', error)
+      alert('采集失败')
     } finally {
       setLoading(false)
     }
@@ -248,10 +247,10 @@ export default function ProductCollection() {
       {/* 支持的平台 */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">支持的平台</h2>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div className="flex flex-wrap gap-4">
           {supportedPlatforms.map(platform => (
-            <div key={platform.id} className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-              <PlatformIconCSSWithName platform={platform.id} size={24} />
+            <div key={platform.id} className="flex items-center space-x-3 px-4 py-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors min-w-[120px]">
+              <PlatformIconCSSWithName platform={platform.id} size={22} />
             </div>
           ))}
         </div>
@@ -296,7 +295,8 @@ export default function ProductCollection() {
                     value={singleUrl}
                     onChange={(e) => setSingleUrl(e.target.value)}
                     placeholder="请输入商品链接，支持淘宝、天猫、1688、拼多多、抖音小店、Temu"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white dark:bg-gray-700 dark:border-gray-600"
+                    style={{ color: '#1f2937' }}
                   />
                   <button
                     onClick={startSingleCollection}
@@ -309,6 +309,11 @@ export default function ProductCollection() {
                 {detectedPlatform && (
                   <p className="text-sm text-green-600 mt-1">
                     ✓ 检测到平台: {supportedPlatforms.find(p => p.id === detectedPlatform)?.name}
+                  </p>
+                )}
+                {singleUrl && !detectedPlatform && (
+                  <p className="text-sm text-red-600 mt-1">
+                    ✗ 未能识别平台，请检查链接格式
                   </p>
                 )}
               </div>
@@ -327,7 +332,8 @@ export default function ProductCollection() {
                   value={batchTaskName}
                   onChange={(e) => setBatchTaskName(e.target.value)}
                   placeholder="可选，不填写将自动生成"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white dark:bg-gray-700 dark:border-gray-600"
+                  style={{ color: '#1f2937' }}
                 />
               </div>
               <div>
@@ -339,7 +345,8 @@ export default function ProductCollection() {
                   onChange={(e) => setBatchUrls(e.target.value)}
                   rows={8}
                   placeholder="请输入商品链接，每行一个&#10;支持淘宝、天猫、1688、拼多多、抖音小店、Temu"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white dark:bg-gray-700 dark:border-gray-600"
+                  style={{ color: '#1f2937' }}
                 />
                 <p className="text-sm text-gray-500 mt-1">
                   共 {batchUrls.split('\n').filter(url => url.trim()).length} 个链接
@@ -369,7 +376,8 @@ export default function ProductCollection() {
                   value={shopTaskName}
                   onChange={(e) => setShopTaskName(e.target.value)}
                   placeholder="可选，不填写将自动生成"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white dark:bg-gray-700 dark:border-gray-600"
+                  style={{ color: '#1f2937' }}
                 />
               </div>
               <div>
@@ -381,7 +389,8 @@ export default function ProductCollection() {
                   value={shopUrl}
                   onChange={(e) => setShopUrl(e.target.value)}
                   placeholder="请输入店铺首页链接"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white dark:bg-gray-700 dark:border-gray-600"
+                  style={{ color: '#1f2937' }}
                 />
               </div>
               <div>
@@ -394,7 +403,8 @@ export default function ProductCollection() {
                   onChange={(e) => setMaxProducts(Number(e.target.value))}
                   min="1"
                   max="1000"
-                  className="w-32 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  className="w-32 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white dark:bg-gray-700 dark:border-gray-600"
+                  style={{ color: '#1f2937' }}
                 />
                 <p className="text-sm text-gray-500 mt-1">建议不超过500个商品</p>
               </div>
@@ -470,7 +480,8 @@ export default function ProductCollection() {
                     ...prev,
                     priceRange: { ...prev.priceRange, min: Number(e.target.value) }
                   }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 dark:text-white dark:bg-gray-700 dark:border-gray-600"
+                  style={{ color: '#1f2937' }}
                 />
               </div>
               <div>
@@ -482,7 +493,8 @@ export default function ProductCollection() {
                     ...prev,
                     priceRange: { ...prev.priceRange, max: Number(e.target.value) }
                   }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 dark:text-white dark:bg-gray-700 dark:border-gray-600"
+                  style={{ color: '#1f2937' }}
                 />
               </div>
             </div>
@@ -507,7 +519,8 @@ export default function ProductCollection() {
                   onChange={(e) => setSettings(prev => ({ ...prev, maxImages: Number(e.target.value) }))}
                   min="1"
                   max="20"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 dark:text-white dark:bg-gray-700 dark:border-gray-600"
+                  style={{ color: '#1f2937' }}
                 />
               </div>
               <div>
@@ -515,7 +528,8 @@ export default function ProductCollection() {
                 <select
                   value={settings.imageQuality}
                   onChange={(e) => setSettings(prev => ({ ...prev, imageQuality: e.target.value as any }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 dark:text-white dark:bg-gray-700 dark:border-gray-600"
+                  style={{ color: '#1f2937' }}
                 >
                   <option value="low">低质量</option>
                   <option value="medium">中等质量</option>
@@ -535,7 +549,8 @@ export default function ProductCollection() {
                   onChange={(e) => setSettings(prev => ({ ...prev, delay: Number(e.target.value) }))}
                   min="500"
                   max="10000"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 dark:text-white dark:bg-gray-700 dark:border-gray-600"
+                  style={{ color: '#1f2937' }}
                 />
               </div>
               <div>
@@ -546,7 +561,8 @@ export default function ProductCollection() {
                   onChange={(e) => setSettings(prev => ({ ...prev, retryCount: Number(e.target.value) }))}
                   min="0"
                   max="5"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 dark:text-white dark:bg-gray-700 dark:border-gray-600"
+                  style={{ color: '#1f2937' }}
                 />
               </div>
               <div>
@@ -557,7 +573,8 @@ export default function ProductCollection() {
                   onChange={(e) => setSettings(prev => ({ ...prev, timeout: Number(e.target.value) * 1000 }))}
                   min="10"
                   max="120"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 dark:text-white dark:bg-gray-700 dark:border-gray-600"
+                  style={{ color: '#1f2937' }}
                 />
               </div>
             </div>
@@ -683,7 +700,12 @@ export default function ProductCollection() {
                       )}
                       {task.status === 'completed' && (
                         <button
-                          onClick={() => window.open(`/admin/collection-box?taskId=${task.id}`, '_blank')}
+                          onClick={() => {
+                            // 触发切换到采集箱Tab的事件
+                            window.dispatchEvent(new CustomEvent('switchToCollectionBox', {
+                              detail: { taskId: task.id }
+                            }));
+                          }}
                           className="text-blue-600 hover:text-blue-900"
                         >
                           查看结果

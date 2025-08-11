@@ -254,12 +254,23 @@ export default function CollectionBox() {
               >
                 批量编辑 ({selectedProducts.length})
               </button>
-              <button
-                onClick={() => publishProducts(selectedProducts)}
-                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
-              >
-                批量发布
-              </button>
+              {selectedProducts.some(id => {
+                const product = products.find(p => p.id === id);
+                return product && product.status !== 'published';
+              }) && (
+                <button
+                  onClick={() => {
+                    const unpublishedIds = selectedProducts.filter(id => {
+                      const product = products.find(p => p.id === id);
+                      return product && product.status !== 'published';
+                    });
+                    publishProducts(unpublishedIds);
+                  }}
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  批量发布
+                </button>
+              )}
               <button
                 onClick={() => deleteProducts(selectedProducts)}
                 className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
@@ -444,12 +455,14 @@ export default function CollectionBox() {
                       查看详情
                     </button>
                     <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => publishProducts([product.id])}
-                        className="text-green-600 hover:text-green-800 text-sm"
-                      >
-                        发布
-                      </button>
+                      {product.status !== 'published' && (
+                        <button
+                          onClick={() => publishProducts([product.id])}
+                          className="text-green-600 hover:text-green-800 text-sm"
+                        >
+                          发布
+                        </button>
+                      )}
                       <button
                         onClick={() => deleteProducts([product.id])}
                         className="text-red-600 hover:text-red-800 text-sm"

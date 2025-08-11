@@ -10,6 +10,7 @@ import ApiSettings from './ApiSettings';
 import AfterSales from './AfterSales';
 import SmartCollection from './SmartCollection';
 import CollectionBox from './CollectionBox';
+import ProductCollection from './ProductCollection';
 import TestPage from './TestPage';
 
 interface AdminUser {
@@ -53,6 +54,18 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     if (userData) {
       setUser(JSON.parse(userData));
     }
+
+    // 监听切换到采集箱的事件
+    const handleSwitchToCollectionBox = (event: CustomEvent) => {
+      setCurrentView('collection-box');
+      setActiveSubmenu('products');
+    };
+
+    window.addEventListener('switchToCollectionBox', handleSwitchToCollectionBox as EventListener);
+
+    return () => {
+      window.removeEventListener('switchToCollectionBox', handleSwitchToCollectionBox as EventListener);
+    };
   }, []);
 
   const handleLogout = () => {
@@ -67,12 +80,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       setActiveSubmenu(null);
     } else if (item.type === 'group') {
       if (child) {
-        // 只对商品列表做特殊处理，跳转到product-collection页面
-        if (child.key === 'product-list') {
-          router.push('/admin/product-collection');
-          return;
-        }
-        // 其他所有子菜单都使用原来的内部视图切换
         setCurrentView(child.key);
         setActiveSubmenu(item.key);
       } else {
@@ -91,6 +98,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         return <AfterSales />;
       case 'analytics':
         return <DataAnalytics />;
+      case 'product-list':
+        return <ProductCollection />;
       case 'smart-collection':
         return <SmartCollection />;
       case 'collection-box':

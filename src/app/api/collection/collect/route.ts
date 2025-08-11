@@ -75,7 +75,7 @@ const mockProductData: Record<Platform, any> = {
     price: 39.90,
     currency: 'CNY',
     images: [
-      'https://images.unsplash.com/photo-1503944583220-79d8926ad5e2?w=400',
+      'https://images.unsplash.com/photo-1503919005314-30d93d07d823?w=400',
       'https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=400'
     ],
     category: '童装',
@@ -95,9 +95,9 @@ const mockProductData: Record<Platform, any> = {
       id: 'sup_003',
       name: '童趣服装工厂',
       rating: 4.5,
-      location: '福建泉州',
+      location: '江苏苏州',
       responseRate: 92,
-      minOrderQuantity: 10,
+      minOrderQuantity: 20,
       deliveryTime: '2-5天'
     }
   },
@@ -107,27 +107,29 @@ const mockProductData: Record<Platform, any> = {
     price: 199.00,
     currency: 'CNY',
     images: [
-      'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400',
-      'https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=400',
-      'https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400'
+      'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400',
+      'https://images.unsplash.com/photo-1484704849700-f032a568e944?w=400',
+      'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400'
     ],
     category: '数码配件',
     subcategory: '耳机',
     specifications: {
+      '品牌': '京东自营',
       '连接方式': '蓝牙5.0',
-      '续航时间': '8小时+24小时充电盒',
       '防水等级': 'IPX7',
-      '降噪功能': '主动降噪'
+      '续航时间': '24小时',
+      '充电时间': '2小时',
+      '降噪技术': '主动降噪'
     },
     variants: [
-      { id: '1', sku: 'JD001-BLACK', attributes: { '颜色': '黑色' }, price: 199.00, stock: 1000 },
-      { id: '2', sku: 'JD001-WHITE', attributes: { '颜色': '白色' }, price: 199.00, stock: 800 },
-      { id: '3', sku: 'JD001-BLUE', attributes: { '颜色': '蓝色' }, price: 199.00, stock: 600 },
+      { id: '1', sku: 'BT001-BLACK', attributes: { '颜色': '黑色' }, price: 199.00, stock: 500 },
+      { id: '2', sku: 'BT001-WHITE', attributes: { '颜色': '白色' }, price: 199.00, stock: 300 },
+      { id: '3', sku: 'BT001-BLUE', attributes: { '颜色': '蓝色' }, price: 199.00, stock: 200 },
     ],
     supplier: {
       id: 'jd_official',
       name: '京东自营',
-      rating: 4.9,
+      rating: 4.8,
       location: '北京',
       responseRate: 99,
       minOrderQuantity: 1,
@@ -140,30 +142,29 @@ const mockProductData: Record<Platform, any> = {
     price: 89.90,
     currency: 'CNY',
     images: [
-      'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=400',
-      'https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=400',
-      'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=400'
+      'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400',
+      'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=400'
     ],
     category: '女装',
     subcategory: '连衣裙',
     specifications: {
-      '面料': '聚酯纤维',
+      '面料': '雪纺',
       '版型': '修身',
-      '长度': '中长款',
-      '适用季节': '春夏'
+      '袖长': '短袖',
+      '风格': '甜美',
+      '适用场合': '日常/约会'
     },
     variants: [
-      { id: '1', sku: 'DY001-S-RED', attributes: { '尺寸': 'S', '颜色': '红色' }, price: 89.90, stock: 200 },
-      { id: '2', sku: 'DY001-M-RED', attributes: { '尺寸': 'M', '颜色': '红色' }, price: 89.90, stock: 300 },
-      { id: '3', sku: 'DY001-L-BLUE', attributes: { '尺寸': 'L', '颜色': '蓝色' }, price: 89.90, stock: 250 },
-      { id: '4', sku: 'DY001-S-BLACK', attributes: { '尺寸': 'S', '颜色': '黑色' }, price: 89.90, stock: 180 },
+      { id: '1', sku: 'DR001-S-PINK', attributes: { '尺寸': 'S', '颜色': '粉色' }, price: 89.90, stock: 100 },
+      { id: '2', sku: 'DR001-M-PINK', attributes: { '尺寸': 'M', '颜色': '粉色' }, price: 89.90, stock: 120 },
+      { id: '3', sku: 'DR001-L-WHITE', attributes: { '尺寸': 'L', '颜色': '白色' }, price: 89.90, stock: 80 },
     ],
     supplier: {
-      id: 'dy_shop_001',
-      name: '时尚女装旗舰店',
+      id: 'dy_fashion',
+      name: '抖音时尚小店',
       rating: 4.7,
-      location: '广东广州',
-      responseRate: 94,
+      location: '广东深圳',
+      responseRate: 88,
       minOrderQuantity: 1,
       deliveryTime: '2-3天'
     }
@@ -174,27 +175,28 @@ const mockProductData: Record<Platform, any> = {
     price: 29.99,
     currency: 'USD',
     images: [
-      'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400',
-      'https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=400'
+      'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400',
+      'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400'
     ],
     category: 'Electronics',
-    subcategory: 'Audio',
+    subcategory: 'Earbuds',
     specifications: {
-      'Battery Life': '6 hours + 24 hours case',
+      'Brand': 'Temu',
       'Connectivity': 'Bluetooth 5.0',
+      'Battery Life': '6 hours',
       'Water Resistance': 'IPX4',
-      'Driver Size': '10mm'
+      'Noise Cancellation': 'Yes'
     },
     variants: [
-      { id: '1', sku: 'E001-BLACK', attributes: { 'Color': 'Black' }, price: 29.99, stock: 500 },
-      { id: '2', sku: 'E001-WHITE', attributes: { 'Color': 'White' }, price: 29.99, stock: 300 },
+      { id: '1', sku: 'TE001-BLACK', attributes: { 'Color': 'Black' }, price: 29.99, stock: 1000 },
+      { id: '2', sku: 'TE001-WHITE', attributes: { 'Color': 'White' }, price: 29.99, stock: 800 },
     ],
     supplier: {
-      id: 'sup_004',
-      name: 'TechSound Electronics',
-      rating: 4.7,
-      location: 'Shenzhen, China',
-      responseRate: 96,
+      id: 'temu_global',
+      name: 'Temu Global Store',
+      rating: 4.4,
+      location: 'Global',
+      responseRate: 85,
       minOrderQuantity: 1,
       deliveryTime: '7-15 days'
     }
@@ -238,14 +240,14 @@ function detectPlatform(url: string): PlatformDetection {
 function extractProductId(url: string, platform: Platform): string {
   // 简化的ID提取逻辑
   const match = url.match(/(?:id=|offer\/|goods_id=)(\d+)/);
-  return match ? match[1] : Math.random().toString(36).substr(2, 9);
+  return match ? match[1] : Math.random().toString(36).substring(2, 9);
 }
 
 // 检查是否重复采集
 async function checkDuplicate(url: string): Promise<boolean> {
   // TODO: 实际实现中应该查询数据库
   // 这里模拟检查逻辑
-  return Math.random() < 0.1; // 10% 概率返回重复
+  return false;
 }
 
 // 采集商品信息
@@ -257,7 +259,7 @@ async function collectProductInfo(url: string, platform: Platform): Promise<Coll
   const productId = extractProductId(url, platform);
   
   const product: CollectedProduct = {
-    id: `collected_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    id: `collected_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
     taskId: `task_${Date.now()}`,
     platform,
     originalUrl: url,

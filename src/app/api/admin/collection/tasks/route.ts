@@ -113,8 +113,38 @@ let mockTasks: CollectionTask[] = [
   }
 ]
 
+// 模拟任务状态更新
+function updateTaskStatuses() {
+  mockTasks.forEach(task => {
+    if (task.status === 'pending') {
+      // 等待中的任务有50%概率变为采集中
+      if (Math.random() < 0.5) {
+        task.status = 'processing';
+        task.progress = 10;
+        task.startTime = new Date().toISOString();
+      }
+    } else if (task.status === 'processing') {
+      // 采集中的任务逐步增加进度
+      if (task.progress < 100) {
+        task.progress = Math.min(100, task.progress + Math.floor(Math.random() * 20) + 10);
+        task.collectedProducts = Math.floor((task.progress / 100) * task.totalProducts);
+
+        // 如果进度达到100%，标记为完成
+        if (task.progress >= 100) {
+          task.status = 'completed';
+          task.endTime = new Date().toISOString();
+          task.collectedProducts = task.totalProducts;
+        }
+      }
+    }
+  });
+}
+
 export async function GET(request: NextRequest) {
   try {
+    // 模拟任务状态更新
+    updateTaskStatuses();
+
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '10')
