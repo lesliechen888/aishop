@@ -454,18 +454,23 @@ export default function CollectionBox() {
                     >
                       查看详情
                     </button>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-6">
                       {product.status !== 'published' && (
                         <button
                           onClick={() => publishProducts([product.id])}
-                          className="text-green-600 hover:text-green-800 text-sm"
+                          className="bg-green-600 text-white px-3 py-1.5 rounded-md hover:bg-green-700 transition-colors text-sm font-medium"
                         >
                           发布
                         </button>
                       )}
+                      {product.status === 'published' && (
+                        <span className="text-green-600 text-sm font-medium">
+                          ✓ 已发布
+                        </span>
+                      )}
                       <button
                         onClick={() => deleteProducts([product.id])}
-                        className="text-red-600 hover:text-red-800 text-sm"
+                        className="bg-red-600 text-white px-3 py-1.5 rounded-md hover:bg-red-700 transition-colors text-sm font-medium"
                       >
                         删除
                       </button>

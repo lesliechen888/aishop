@@ -236,12 +236,21 @@ export default function ProductCollection() {
           <h1 className="text-2xl font-bold text-gray-900">商品采集</h1>
           <p className="text-gray-600 mt-1">从各大电商平台采集商品信息</p>
         </div>
-        <button
-          onClick={() => setShowAdvancedSettings(!showAdvancedSettings)}
-          className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
-        >
-          {showAdvancedSettings ? '隐藏' : '显示'}高级设置
-        </button>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={() => window.location.href = '/admin/collection'}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+          >
+            <span>📦</span>
+            <span>商品采集(新)</span>
+          </button>
+          <button
+            onClick={() => setShowAdvancedSettings(!showAdvancedSettings)}
+            className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
+          >
+            {showAdvancedSettings ? '隐藏' : '显示'}高级设置
+          </button>
+        </div>
       </div>
 
       {/* 支持的平台 */}
