@@ -67,6 +67,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       setActiveSubmenu(null);
     } else if (item.type === 'group') {
       if (child) {
+        // 只对商品列表做特殊处理，跳转到product-collection页面
+        if (child.key === 'product-list') {
+          router.push('/admin/product-collection');
+          return;
+        }
+        // 其他所有子菜单都使用原来的内部视图切换
         setCurrentView(child.key);
         setActiveSubmenu(item.key);
       } else {

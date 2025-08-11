@@ -5,6 +5,7 @@ import { Platform, CollectionSettings } from '@/types/collection'
 import { ParsedUrl, SmartParseResult, CollectionIntent, smartParser } from '@/utils/smartParser'
 import { PlatformIconCSSSimple } from '@/components/ui/PlatformIconCSS'
 import { getSupportedPlatforms } from '@/utils/platformDetector'
+import { addProductsToCollection } from '@/utils/productStorage'
 import RealTimeProgress from './RealTimeProgress'
 
 export default function SmartCollection() {
@@ -37,6 +38,7 @@ export default function SmartCollection() {
       if (line.includes('taobao.com') || line.includes('tmall.com')) detectedPlatforms.add('taobao')
       if (line.includes('1688.com')) detectedPlatforms.add('1688')
       if (line.includes('pinduoduo.com') || line.includes('yangkeduo.com')) detectedPlatforms.add('pdd')
+      if (line.includes('jd.com')) detectedPlatforms.add('jd')
       if (line.includes('jinritemai.com') || line.includes('douyin.com')) detectedPlatforms.add('douyin')
       if (line.includes('temu.com')) detectedPlatforms.add('temu')
     })
@@ -143,6 +145,14 @@ export default function SmartCollection() {
         }
 
         alert(`成功创建 ${result.tasksCreated} 个采集任务`)
+
+        // 采集成功后，提示用户查看采集箱
+        setTimeout(() => {
+          if (confirm('采集任务已创建！采集完成后商品将自动保存到采集箱。是否前往采集箱查看？')) {
+            window.location.href = '/admin/collection-box';
+          }
+        }, 1000);
+
         setInput('')
         setParseResult(null)
         setSelectedUrls([])
@@ -340,7 +350,8 @@ export default function SmartCollection() {
 • 1688店铺: https://company.1688.com/
 
 系统将自动识别平台类型和采集方式...`}
-              className="w-full h-40 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 resize-none text-sm"
+              className="w-full h-40 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 resize-none text-sm text-gray-900 dark:text-white dark:bg-gray-700 dark:border-gray-600"
+              style={{ color: '#1f2937' }}
               disabled={loading}
             />
           </div>

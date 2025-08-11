@@ -4,6 +4,9 @@ import { useState } from 'react';
 import { useLocalization } from '@/contexts/LocalizationContext';
 import { CollectionTask, Platform, CollectionMethod } from '@/types/collection';
 import AutoCollectionInterface from '@/components/collection/AutoCollectionInterface';
+import CollectionBox from '@/components/collection/CollectionBox';
+import { UrlInput } from '@/components/ui/Input';
+import { addProductToCollection } from '@/utils/productStorage';
 
 const CollectionPage = () => {
   const { t } = useLocalization();
@@ -41,9 +44,15 @@ const CollectionPage = () => {
       const result = await response.json();
 
       if (result.success) {
-        alert(t('collection.success'));
+        // 保存商品到采集箱
+        addProductToCollection(result.data);
+
         setCollectionUrl('');
-        // TODO: 刷新采集箱数据
+
+        // 只显示一次提示，询问是否查看采集箱
+        if (confirm('商品采集成功！是否前往采集箱查看？')) {
+          setActiveTab('box'); // 切换到采集箱Tab
+        }
       } else {
         if (result.isDuplicate) {
           alert(t('collection.duplicateError'));
@@ -171,12 +180,11 @@ const CollectionPage = () => {
               </h2>
               <div className="flex space-x-4">
                 <div className="flex-1">
-                  <input
-                    type="url"
+                  <UrlInput
                     value={collectionUrl}
                     onChange={(e) => handleUrlChange(e.target.value)}
                     placeholder={t('collection.urlPlaceholder')}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                    helperText="支持1688、淘宝、拼多多、京东、抖音、Temu等平台"
                   />
                 </div>
                 <button
@@ -264,13 +272,30 @@ const CollectionPage = () => {
         )}
 
         {activeTab === 'box' && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              {t('collectionBox.title')}
-            </h2>
-            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-              {t('collectionBox.empty')}
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                {t('collectionBox.title')}
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                管理您采集的商品，进行批量编辑和发布操作
+              </p>
             </div>
+
+            <CollectionBox
+              onBatchEdit={(productIds, updates) => {
+                console.log('Batch edit:', productIds, updates);
+                // TODO: 实现批量编辑逻辑
+              }}
+              onBatchPublish={(productIds) => {
+                console.log('Batch publish:', productIds);
+                // TODO: 实现批量发布逻辑
+              }}
+              onDelete={(productIds) => {
+                console.log('Delete products:', productIds);
+                // 删除逻辑已在CollectionBox组件内部处理
+              }}
+            />
           </div>
         )}
 

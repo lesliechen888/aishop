@@ -37,6 +37,13 @@ const platformConfigs: Record<Platform, { name: string; bgColor: string; textCol
     text: '淘宝',
     gradient: 'linear-gradient(135deg, #FF4400 0%, #FF6633 100%)'
   },
+  'jd': {
+    name: '京东',
+    bgColor: '#E1251B',
+    textColor: '#FFFFFF',
+    text: '京东',
+    gradient: 'linear-gradient(135deg, #E1251B 0%, #FF4444 100%)'
+  },
   'temu': {
     name: 'Temu',
     bgColor: '#1976D2',

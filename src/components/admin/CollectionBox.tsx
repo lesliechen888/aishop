@@ -5,6 +5,7 @@ import { CollectedProduct, BatchEditRule, Platform } from '@/types/collection'
 import { getSupportedPlatforms } from '@/utils/platformDetector'
 import { getImageFallback } from '@/utils/errorHandler'
 import { PlatformIconCSSSimple } from '@/components/ui/PlatformIconCSS'
+import { getCollectedProducts, addProductsToCollection } from '@/utils/productStorage'
 import BatchEditRules from './BatchEditRules'
 
 export default function CollectionBox() {
@@ -24,24 +25,84 @@ export default function CollectionBox() {
 
   useEffect(() => {
     fetchProducts()
+
+    // 定期检查新采集的商品
+    const checkNewProducts = async () => {
+      try {
+        const response = await fetch('/api/admin/collection/completed-products')
+        const data = await response.json()
+        if (data.success && data.products.length > 0) {
+          // 将新采集的商品保存到localStorage
+          addProductsToCollection(data.products)
+
+          // 清空服务端的临时存储
+          await fetch(`/api/admin/collection/completed-products?ids=${data.products.map((p: CollectedProduct) => p.id).join(',')}`, {
+            method: 'DELETE'
+          })
+
+          // 刷新商品列表
+          fetchProducts()
+        }
+      } catch (error) {
+        console.error('检查新采集商品失败:', error)
+      }
+    }
+
+    // 立即检查一次
+    checkNewProducts()
+
+    // 每30秒检查一次新商品
+    const interval = setInterval(checkNewProducts, 30000)
+
+    return () => clearInterval(interval)
   }, [filterPlatform, filterStatus, sortBy, sortOrder])
 
   const fetchProducts = async () => {
     try {
       setLoading(true)
-      const params = new URLSearchParams({
-        ...(filterPlatform && { platform: filterPlatform }),
-        ...(filterStatus && { status: filterStatus }),
-        sortBy,
-        sortOrder,
-        ...(searchTerm && { search: searchTerm })
+
+      // 从localStorage获取商品
+      const localProducts = getCollectedProducts()
+
+      // 应用过滤和排序
+      let filteredProducts = localProducts
+
+      if (filterPlatform) {
+        filteredProducts = filteredProducts.filter(p => p.platform === filterPlatform)
+      }
+
+      if (filterStatus) {
+        filteredProducts = filteredProducts.filter(p => p.status === filterStatus)
+      }
+
+      if (searchTerm) {
+        const term = searchTerm.toLowerCase()
+        filteredProducts = filteredProducts.filter(p =>
+          p.title.toLowerCase().includes(term) ||
+          p.description?.toLowerCase().includes(term) ||
+          p.shopName?.toLowerCase().includes(term)
+        )
+      }
+
+      // 排序
+      filteredProducts.sort((a, b) => {
+        let aValue = a[sortBy as keyof CollectedProduct] as any
+        let bValue = b[sortBy as keyof CollectedProduct] as any
+
+        if (sortBy === 'collectedAt') {
+          aValue = new Date(aValue).getTime()
+          bValue = new Date(bValue).getTime()
+        }
+
+        if (sortOrder === 'asc') {
+          return aValue > bValue ? 1 : -1
+        } else {
+          return aValue < bValue ? 1 : -1
+        }
       })
 
-      const response = await fetch(`/api/admin/collection/products?${params}`)
-      const data = await response.json()
-      if (data.success) {
-        setProducts(data.products)
-      }
+      setProducts(filteredProducts)
+
     } catch (error) {
       console.error('获取采集商品失败:', error)
     } finally {

@@ -85,6 +85,17 @@ const platformSelectors: Record<Platform, {
     description: ['.goods-desc', '.product-desc'],
     shopName: ['.shop-name', '.store-name']
   },
+  'jd': {
+    title: ['.sku-name', '.p-name a', 'h1.product-intro-title'],
+    price: ['.price', '.p-price .price', '.summary-price .price'],
+    originalPrice: ['.p-price .del', '.summary-price .del'],
+    images: ['.spec-list img', '.lh img', '#spec-list img'],
+    description: ['.detail-content', '.p-parameter', '#detail'],
+    shopName: ['.J-hove-wrap .name', '.shop-name', '.seller-name'],
+    sales: ['.comment-count', '.p-commit-count'],
+    rating: ['.comment-score', '.score-average'],
+    specifications: ['.p-parameter li', '.Ptable tr']
+  },
   'temu': {
     title: ['[data-testid="product-title"]', '.product-title'],
     price: ['.price-current', '.product-price'],
@@ -135,6 +146,22 @@ const platformConfigs: Record<Platform, HttpConfig> = {
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
     headers: {
       'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+    }
+  },
+  'jd': {
+    timeout: 8000,
+    retries: 3,
+    delay: 1800,
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    headers: {
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+      'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+      'Accept-Encoding': 'gzip, deflate, br',
+      'Connection': 'keep-alive',
+      'Upgrade-Insecure-Requests': '1',
+      'Sec-Fetch-Dest': 'document',
+      'Sec-Fetch-Mode': 'navigate',
+      'Sec-Fetch-Site': 'none'
     }
   },
   'temu': {

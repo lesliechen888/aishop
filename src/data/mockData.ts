@@ -485,7 +485,7 @@ export const localizedContent: LocalizedContent = {
     'collection.title': '商品采集',
     'collection.subtitle': '从1688等平台采集商品',
     'collection.urlInput': '商品链接',
-    'collection.urlPlaceholder': '请输入1688商品链接',
+    'collection.urlPlaceholder': '请输入商品链接',
     'collection.collectBtn': '采集商品',
     'collection.collecting': '采集中...',
     'collection.success': '商品采集成功',

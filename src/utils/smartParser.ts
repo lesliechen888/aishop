@@ -45,6 +45,10 @@ const intentPatterns = {
     /1688\.com\/offer\/\d+\.html/,
     // 拼多多商品页
     /(pinduoduo|yangkeduo)\.com\/goods\.html/,
+    // 京东商品页
+    /item\.jd\.com\/\d+\.html/,
+    /item\.m\.jd\.com\/product\/\d+\.html/,
+    /pro\.jd\.com\/mall\/active\/.*\/\d+\.html/,
     // 抖音小店商品页
     /jinritemai\.com\/views\/product\/item/,
     // Temu商品页
@@ -63,6 +67,10 @@ const intentPatterns = {
     // 1688店铺
     /.*\.1688\.com$/,
     /shop\.1688\.com/,
+    // 京东店铺
+    /mall\.jd\.com\/index-\d+\.html/,
+    /.*\.jd\.com$/,
+    /shop\.jd\.com\/\d+/,
     // 拼多多店铺
     /pinduoduo\.com\/mall/,
     // 抖音小店店铺

@@ -1,56 +1,102 @@
 // 共享的商品存储模块
 import { CollectedProduct } from '@/types/collection'
 
-// 模拟商品存储（在实际项目中应该使用数据库）
-let collectedProducts: CollectedProduct[] = []
+// 本地存储键名
+const COLLECTION_BOX_KEY = 'collection_box_products';
+
+// 获取采集箱中的商品
+function getStoredProducts(): CollectedProduct[] {
+  if (typeof window === 'undefined') return [];
+
+  try {
+    const stored = localStorage.getItem(COLLECTION_BOX_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch (error) {
+    console.error('Error reading collection box products:', error);
+    return [];
+  }
+}
+
+// 保存商品到本地存储
+function saveProducts(products: CollectedProduct[]): void {
+  if (typeof window === 'undefined') return;
+
+  try {
+    localStorage.setItem(COLLECTION_BOX_KEY, JSON.stringify(products));
+    // 触发自定义事件，通知其他组件更新
+    window.dispatchEvent(new CustomEvent('collectionBoxUpdated', {
+      detail: { products }
+    }));
+  } catch (error) {
+    console.error('Error saving products:', error);
+  }
+}
 
 // 添加商品到采集箱
 export function addProductToCollection(product: CollectedProduct): void {
-  collectedProducts.unshift(product)
+  const products = getStoredProducts();
+
+  // 检查是否已存在相同商品（基于原始URL）
+  const isDuplicate = products.some(p => p.originalUrl === product.originalUrl);
+
+  if (!isDuplicate) {
+    products.unshift(product);
+    saveProducts(products);
+  }
 }
 
 // 批量添加商品到采集箱
-export function addProductsToCollection(products: CollectedProduct[]): void {
-  collectedProducts.unshift(...products)
+export function addProductsToCollection(newProducts: CollectedProduct[]): void {
+  const existingProducts = getStoredProducts();
+  const allProducts = [...newProducts, ...existingProducts];
+  saveProducts(allProducts);
 }
 
 // 获取所有采集的商品
 export function getCollectedProducts(): CollectedProduct[] {
-  return [...collectedProducts]
+  return getStoredProducts();
 }
 
 // 根据ID获取商品
 export function getProductById(id: string): CollectedProduct | undefined {
-  return collectedProducts.find(product => product.id === id)
+  const products = getStoredProducts();
+  return products.find(product => product.id === id);
 }
 
 // 根据任务ID获取商品
 export function getProductsByTaskId(taskId: string): CollectedProduct[] {
-  return collectedProducts.filter(product => product.taskId === taskId)
+  const products = getStoredProducts();
+  return products.filter(product => product.taskId === taskId);
 }
 
 // 更新商品
 export function updateProduct(id: string, updates: Partial<CollectedProduct>): boolean {
-  const index = collectedProducts.findIndex(product => product.id === id)
+  const products = getStoredProducts();
+  const index = products.findIndex(product => product.id === id);
+
   if (index !== -1) {
-    collectedProducts[index] = {
-      ...collectedProducts[index],
+    products[index] = {
+      ...products[index],
       ...updates,
       updatedAt: new Date().toISOString()
-    }
-    return true
+    };
+    saveProducts(products);
+    return true;
   }
-  return false
+  return false;
 }
 
 // 删除商品
 export function deleteProduct(id: string): boolean {
-  const index = collectedProducts.findIndex(product => product.id === id)
+  const products = getStoredProducts();
+  const index = products.findIndex(product => product.id === id);
+
   if (index !== -1) {
-    collectedProducts.splice(index, 1)
-    return true
+    products.splice(index, 1);
+    saveProducts(products);
+    return true;
   }
-  return false
+  return false;
 }
 
 // 批量删除商品

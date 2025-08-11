@@ -1,18 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocalization } from '@/contexts/LocalizationContext';
 import { CollectedProduct, PriceAdjustment } from '@/types/collection';
+import { getCollectedProducts, deleteProduct, updateProduct } from '@/utils/productStorage';
 
 interface CollectionBoxProps {
-  products: CollectedProduct[];
-  onBatchEdit: (productIds: string[], updates: any) => void;
-  onBatchPublish: (productIds: string[]) => void;
-  onDelete: (productIds: string[]) => void;
+  onBatchEdit?: (productIds: string[], updates: any) => void;
+  onBatchPublish?: (productIds: string[]) => void;
+  onDelete?: (productIds: string[]) => void;
 }
 
-const CollectionBox = ({ products, onBatchEdit, onBatchPublish, onDelete }: CollectionBoxProps) => {
+const CollectionBox = ({ onBatchEdit, onBatchPublish, onDelete }: CollectionBoxProps) => {
   const { t } = useLocalization();
+  const [products, setProducts] = useState<CollectedProduct[]>([]);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [showBatchEdit, setShowBatchEdit] = useState(false);
   const [priceAdjustment, setPriceAdjustment] = useState<PriceAdjustment>({
@@ -20,6 +21,28 @@ const CollectionBox = ({ products, onBatchEdit, onBatchPublish, onDelete }: Coll
     operation: 'increase',
     value: 50
   });
+
+  // 加载采集箱商品
+  const loadProducts = () => {
+    const collectedProducts = getCollectedProducts();
+    setProducts(collectedProducts);
+  };
+
+  // 组件挂载时加载商品
+  useEffect(() => {
+    loadProducts();
+
+    // 监听采集箱更新事件
+    const handleCollectionBoxUpdate = () => {
+      loadProducts();
+    };
+
+    window.addEventListener('collectionBoxUpdated', handleCollectionBoxUpdate);
+
+    return () => {
+      window.removeEventListener('collectionBoxUpdated', handleCollectionBoxUpdate);
+    };
+  }, []);
 
   const handleSelectAll = () => {
     if (selectedProducts.length === products.length) {
@@ -68,8 +91,18 @@ const CollectionBox = ({ products, onBatchEdit, onBatchPublish, onDelete }: Coll
       return;
     }
     if (confirm(`确定要删除选中的 ${selectedProducts.length} 个商品吗？`)) {
-      onDelete(selectedProducts);
+      // 删除选中的商品
+      selectedProducts.forEach(productId => {
+        deleteProduct(productId);
+      });
+
+      // 调用外部删除回调（如果提供）
+      if (onDelete) {
+        onDelete(selectedProducts);
+      }
+
       setSelectedProducts([]);
+      loadProducts(); // 重新加载商品列表
     }
   };
 

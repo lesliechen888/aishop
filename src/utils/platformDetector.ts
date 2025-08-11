@@ -48,6 +48,17 @@ export const platformConfigs: Record<Platform, PlatformConfig> = {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
     }
   },
+  'jd': {
+    id: 'jd',
+    name: '京东',
+    icon: '/images/platforms/jd.png',
+    baseUrl: 'https://www.jd.com',
+    enabled: true,
+    rateLimit: 40,
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+    }
+  },
   'temu': {
     id: 'temu',
     name: 'Temu',
@@ -84,6 +95,12 @@ const urlPatterns: Record<Platform, RegExp[]> = {
     /m\.taobao\.com\/.*id=(\d+)/,
     /m\.tmall\.com\/.*id=(\d+)/
   ],
+  'jd': [
+    /item\.jd\.com\/(\d+)\.html/,
+    /item\.m\.jd\.com\/product\/(\d+)\.html/,
+    /item\.jd\.hk\/(\d+)\.html/,
+    /pro\.jd\.com\/mall\/active\/.*\/(\d+)\.html/
+  ],
   'temu': [
     /www\.temu\.com\/.*goods\.html\?goods_id=(\d+)/,
     /temu\.com\/.*_g_(\d+)\.html/,
@@ -109,6 +126,11 @@ const shopPatterns: Record<Platform, RegExp[]> = {
     /shop(\d+)\.taobao\.com/,
     /(\w+)\.taobao\.com/,
     /(\w+)\.tmall\.com/
+  ],
+  'jd': [
+    /mall\.jd\.com\/index-(\d+)\.html/,
+    /(\w+)\.jd\.com/,
+    /shop\.jd\.com\/(\d+)/
   ],
   'temu': [
     /temu\.com\/.*store\/(\d+)/,
@@ -229,6 +251,8 @@ export class PlatformDetector {
       'douyin.com': 'douyin',
       'taobao.com': 'taobao',
       'tmall.com': 'taobao',
+      'jd.com': 'jd',
+      'jd.hk': 'jd',
       'temu.com': 'temu'
     }
 

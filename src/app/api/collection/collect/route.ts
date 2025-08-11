@@ -315,12 +315,12 @@ export async function POST(request: NextRequest) {
     // 采集商品信息
     const product = await collectProductInfo(url, detection.platform);
 
-    // TODO: 保存到数据库
     console.log('Collected product:', product);
 
     return NextResponse.json({
       success: true,
-      data: product
+      data: product,
+      message: '商品采集成功'
     });
 
   } catch (error) {

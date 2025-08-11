@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useLocalization } from '@/contexts/LocalizationContext';
+import { UrlInput, Input } from '@/components/ui/Input';
 
 const AutoCollectionInterface = () => {
   const { t } = useLocalization();
@@ -109,48 +110,34 @@ const AutoCollectionInterface = () => {
           {/* Left Column */}
           <div className="space-y-4">
             {activeMode === 'shop' && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  店铺链接
-                </label>
-                <input
-                  type="url"
-                  value={formData.shopUrl}
-                  onChange={(e) => setFormData(prev => ({ ...prev, shopUrl: e.target.value }))}
-                  placeholder="输入店铺链接 (支持1688、淘宝、京东、抖音等)"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                />
-              </div>
+              <UrlInput
+                label="店铺链接"
+                value={formData.shopUrl}
+                onChange={(e) => setFormData(prev => ({ ...prev, shopUrl: e.target.value }))}
+                placeholder="输入店铺链接 (支持1688、淘宝、京东、抖音等)"
+                helperText="支持各大电商平台的店铺页面"
+              />
             )}
 
             {activeMode === 'keyword' && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  关键词
-                </label>
-                <input
-                  type="text"
-                  value={formData.keywords}
-                  onChange={(e) => setFormData(prev => ({ ...prev, keywords: e.target.value }))}
-                  placeholder="输入关键词，用逗号分隔 (如: 服装,电子产品,家居用品)"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                />
-              </div>
+              <Input
+                label="关键词"
+                value={formData.keywords}
+                onChange={(e) => setFormData(prev => ({ ...prev, keywords: e.target.value }))}
+                placeholder="输入关键词，用逗号分隔 (如: 服装,电子产品,家居用品)"
+                helperText="系统将在各大平台搜索相关商品"
+              />
             )}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                最大商品数
-              </label>
-              <input
-                type="number"
-                value={formData.maxProducts}
-                onChange={(e) => setFormData(prev => ({ ...prev, maxProducts: Number(e.target.value) }))}
-                min="1"
-                max="1000"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-              />
-            </div>
+            <Input
+              label="最大商品数"
+              type="number"
+              value={formData.maxProducts.toString()}
+              onChange={(e) => setFormData(prev => ({ ...prev, maxProducts: Number(e.target.value) }))}
+              min="1"
+              max="1000"
+              helperText="建议设置在100-500之间"
+            />
           </div>
 
           {/* Right Column */}
@@ -160,19 +147,17 @@ const AutoCollectionInterface = () => {
                 价格范围
               </label>
               <div className="grid grid-cols-2 gap-2">
-                <input
+                <Input
                   type="number"
-                  value={formData.minPrice}
+                  value={formData.minPrice.toString()}
                   onChange={(e) => setFormData(prev => ({ ...prev, minPrice: Number(e.target.value) }))}
                   placeholder="最低价格"
-                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                 />
-                <input
+                <Input
                   type="number"
-                  value={formData.maxPrice}
+                  value={formData.maxPrice.toString()}
                   onChange={(e) => setFormData(prev => ({ ...prev, maxPrice: Number(e.target.value) }))}
                   placeholder="最高价格"
-                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                 />
               </div>
             </div>

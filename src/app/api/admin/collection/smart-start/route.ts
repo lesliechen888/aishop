@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { CollectionTask, CollectionSettings, CollectedProduct } from '@/types/collection'
 import { ParsedUrl, CollectionIntent } from '@/utils/smartParser'
 import { progressMonitor, initializeTask, updateProductProgress } from '@/utils/progressMonitor'
-import { addProductsToCollection } from '@/utils/productStorage'
+import { addCompletedProducts } from '../completed-products/route'
 
 // 动态导入采集引擎（仅在服务端使用）
 async function getCollectionEngine() {
@@ -265,8 +265,8 @@ async function processRealCollectionTask(task: CollectionTask) {
       .filter(result => result.success && result.product)
       .map(result => result.product!)
 
-    // 保存到采集箱
-    addProductsToCollection(successfulProducts)
+    // 保存到服务端临时存储，供前端获取
+    addCompletedProducts(successfulProducts)
 
     // 更新任务统计
     task.collectedProducts = successfulProducts.length
