@@ -23,6 +23,11 @@ const Header = () => {
     { name: t('nav.contact'), href: '/contact' },
   ];
 
+  // 管理员导航（临时添加，实际应该根据用户权限显示）
+  const adminNavigation = [
+    { name: '商品采集', href: '/admin/collection' },
+  ];
+
   return (
     <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -50,6 +55,19 @@ const Header = () => {
                 {item.name}
               </Link>
             ))}
+
+            {/* Admin Navigation */}
+            <div className="border-l border-gray-300 dark:border-gray-600 pl-4 ml-4">
+              {adminNavigation.map((item) => (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 px-3 py-2 text-sm font-medium transition-colors whitespace-nowrap"
+                >
+                  {item.name}
+                </Link>
+              ))}
+            </div>
           </nav>
 
           {/* Right side - Search, Cart, Language Switcher */}

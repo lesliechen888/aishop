@@ -1,7 +1,7 @@
 // 商品采集系统类型定义
 
 // 支持的平台类型
-export type Platform = '1688' | 'pdd' | 'douyin' | 'taobao' | 'temu'
+export type Platform = '1688' | 'pdd' | 'douyin' | 'taobao' | 'temu' | 'jd'
 
 // 采集方式
 export type CollectionMethod = 'single' | 'batch' | 'shop'
