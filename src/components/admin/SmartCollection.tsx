@@ -149,7 +149,9 @@ export default function SmartCollection() {
         // 采集成功后，提示用户查看采集箱
         setTimeout(() => {
           if (confirm('采集任务已创建！采集完成后商品将自动保存到采集箱。是否前往采集箱查看？')) {
-            window.location.href = '/admin/collection-box';
+            // 切换到采集箱页面（不改变URL）
+            const switchEvent = new CustomEvent('switchToCollectionBox');
+            window.dispatchEvent(switchEvent);
           }
         }, 1000);
 

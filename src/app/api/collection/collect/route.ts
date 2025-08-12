@@ -286,8 +286,10 @@ async function collectProductInfo(url: string, platform: Platform): Promise<Coll
 export async function POST(request: NextRequest) {
   try {
     const { url } = await request.json();
+    console.log('API收到采集请求:', { url });
 
     if (!url || typeof url !== 'string') {
+      console.log('URL验证失败:', { url, type: typeof url });
       return NextResponse.json({
         success: false,
         error: 'Invalid URL provided'
@@ -296,11 +298,14 @@ export async function POST(request: NextRequest) {
 
     // 检测平台
     const detection = detectPlatform(url);
-    
+    console.log('API平台检测结果:', detection);
+
     if (!detection.isValid || !detection.platform) {
+      console.log('平台检测失败:', { detection, isValid: detection.isValid, platform: detection.platform });
       return NextResponse.json({
         success: false,
-        error: 'Unsupported platform or invalid URL'
+        error: 'Unsupported platform or invalid URL',
+        debug: { detection }
       }, { status: 400 });
     }
 
