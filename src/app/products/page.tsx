@@ -1,82 +1,103 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ProductCard from '@/components/ProductCard';
-import ProductFilters from '@/components/ProductFilters';
+import EnhancedProductFilters from '@/components/EnhancedProductFilters';
+import EnhancedProductCard from '@/components/EnhancedProductCard';
 import { useLocalization } from '@/contexts/LocalizationContext';
-import { allProducts } from '@/data/mockData';
+import { DatabaseProduct } from '@/lib/productDatabase';
 
 const ProductsPage = () => {
   const { t } = useLocalization();
+
+  // 状态管理
+  const [products, setProducts] = useState<DatabaseProduct[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+
+  // 筛选和排序状态
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedPriceRange, setSelectedPriceRange] = useState<string>('all');
   const [selectedRating, setSelectedRating] = useState<number>(0);
+  const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
+  const [selectedBrand, setSelectedBrand] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortBy, setSortBy] = useState<string>('featured');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [currentPage, setCurrentPage] = useState<number>(1);
 
   const PRODUCTS_PER_PAGE = 12;
 
-  // 筛选和排序产品
-  const { filteredAndSortedProducts, totalPages, paginatedProducts } = useMemo(() => {
-    let filtered = allProducts.filter(product => {
-      // 分类筛选
-      if (selectedCategory !== 'all' && product.category !== selectedCategory) {
-        return false;
+  // 获取产品数据
+  const fetchProducts = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: PRODUCTS_PER_PAGE.toString(),
+        sort: sortBy
+      });
+
+      if (selectedCategory !== 'all') params.append('category', selectedCategory);
+      if (selectedPriceRange !== 'all') params.append('priceRange', selectedPriceRange);
+      if (selectedRating > 0) params.append('rating', selectedRating.toString());
+      if (selectedFeatures.length > 0) params.append('features', selectedFeatures.join(','));
+      if (selectedBrand !== 'all') params.append('brand', selectedBrand);
+      if (searchQuery) params.append('search', searchQuery);
+
+      const response = await fetch(`/api/products?${params}`);
+      const result = await response.json();
+
+      if (result.success) {
+        setProducts(result.data.products);
+        setTotal(result.data.total);
+        setTotalPages(result.data.totalPages);
+      } else {
+        setError(result.error || '获取产品失败');
       }
-
-      // 价格筛选
-      if (selectedPriceRange !== 'all') {
-        const [min, max] = selectedPriceRange.split('-').map(Number);
-        if (max && (product.price < min || product.price > max)) {
-          return false;
-        }
-        if (!max && product.price < min) {
-          return false;
-        }
-      }
-
-      // 评分筛选
-      if (selectedRating > 0 && product.rating < selectedRating) {
-        return false;
-      }
-
-      return true;
-    });
-
-    // 排序
-    switch (sortBy) {
-      case 'price-low':
-        filtered.sort((a, b) => a.price - b.price);
-        break;
-      case 'price-high':
-        filtered.sort((a, b) => b.price - a.price);
-        break;
-      case 'rating':
-        filtered.sort((a, b) => b.rating - a.rating);
-        break;
-      case 'newest':
-        // 假设按ID排序代表最新
-        filtered.sort((a, b) => b.id.localeCompare(a.id));
-        break;
-      default:
-        // featured - 保持原有顺序
-        break;
+    } catch (err) {
+      setError('网络错误，请稍后重试');
+      console.error('Fetch products error:', err);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    // 计算分页
-    const totalPages = Math.ceil(filtered.length / PRODUCTS_PER_PAGE);
-    const startIndex = (currentPage - 1) * PRODUCTS_PER_PAGE;
-    const paginatedProducts = filtered.slice(startIndex, startIndex + PRODUCTS_PER_PAGE);
+  // 当筛选条件或排序改变时重新获取数据
+  useEffect(() => {
+    fetchProducts();
+  }, [selectedCategory, selectedPriceRange, selectedRating, selectedFeatures, selectedBrand, searchQuery, sortBy, currentPage]);
 
-    return {
-      filteredAndSortedProducts: filtered,
-      totalPages,
-      paginatedProducts
-    };
-  }, [allProducts, selectedCategory, selectedPriceRange, selectedRating, sortBy, currentPage]);
+  // 添加到购物车
+  const handleAddToCart = async (productId: string, quantity: number = 1) => {
+    try {
+      const response = await fetch('/api/cart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ productId, quantity }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // 显示成功消息
+        alert('商品已添加到购物车！');
+      } else {
+        alert(result.error || '添加失败');
+      }
+    } catch (error) {
+      console.error('Add to cart error:', error);
+      alert('添加失败，请稍后重试');
+    }
+  };
 
   // 当筛选条件改变时重置到第一页
   const handleCategoryChange = (category: string) => {
@@ -91,6 +112,21 @@ const ProductsPage = () => {
 
   const handleRatingChange = (rating: number) => {
     setSelectedRating(rating);
+    setCurrentPage(1);
+  };
+
+  const handleFeaturesChange = (features: string[]) => {
+    setSelectedFeatures(features);
+    setCurrentPage(1);
+  };
+
+  const handleBrandChange = (brand: string) => {
+    setSelectedBrand(brand);
+    setCurrentPage(1);
+  };
+
+  const handleSearchChange = (query: string) => {
+    setSearchQuery(query);
     setCurrentPage(1);
   };
 
@@ -123,13 +159,19 @@ const ProductsPage = () => {
           <div className="flex flex-col lg:flex-row gap-8">
             {/* 侧边栏筛选器 */}
             <div className="lg:w-1/4">
-              <ProductFilters
+              <EnhancedProductFilters
                 selectedCategory={selectedCategory}
                 selectedPriceRange={selectedPriceRange}
                 selectedRating={selectedRating}
+                selectedFeatures={selectedFeatures}
+                selectedBrand={selectedBrand}
+                searchQuery={searchQuery}
                 onCategoryChange={handleCategoryChange}
                 onPriceRangeChange={handlePriceRangeChange}
                 onRatingChange={handleRatingChange}
+                onFeaturesChange={handleFeaturesChange}
+                onBrandChange={handleBrandChange}
+                onSearchChange={handleSearchChange}
               />
             </div>
 
@@ -138,9 +180,7 @@ const ProductsPage = () => {
               {/* 工具栏 */}
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <div className="text-gray-600 dark:text-gray-300">
-                  {t('products.showingResults')
-                    .replace('{count}', filteredAndSortedProducts.length.toString())
-                    .replace('{total}', allProducts.length.toString())}
+                  显示 {products.length} 个商品，共 {total} 个结果
                 </div>
                 
                 <div className="flex items-center gap-4">
@@ -185,22 +225,53 @@ const ProductsPage = () => {
                 </div>
               </div>
 
+              {/* 加载状态 */}
+              {loading && (
+                <div className="flex justify-center items-center py-16">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                  <span className="ml-3 text-gray-600">加载中...</span>
+                </div>
+              )}
+
+              {/* 错误状态 */}
+              {error && (
+                <div className="text-center py-16">
+                  <div className="text-6xl mb-4">❌</div>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                    加载失败
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-300 mb-6">
+                    {error}
+                  </p>
+                  <button
+                    onClick={fetchProducts}
+                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    重试
+                  </button>
+                </div>
+              )}
+
               {/* 产品网格/列表 */}
-              {paginatedProducts.length > 0 ? (
+              {!loading && !error && products.length > 0 && (
                 <div className={
                   viewMode === 'grid'
                     ? 'grid md:grid-cols-2 xl:grid-cols-3 gap-6'
                     : 'space-y-6'
                 }>
-                  {paginatedProducts.map((product) => (
-                    <ProductCard
+                  {products.map((product) => (
+                    <EnhancedProductCard
                       key={product.id}
                       product={product}
                       viewMode={viewMode}
+                      onAddToCart={handleAddToCart}
                     />
                   ))}
                 </div>
-              ) : (
+              )}
+
+              {/* 无结果状态 */}
+              {!loading && !error && products.length === 0 && (
                 <div className="text-center py-16">
                   <div className="text-6xl mb-4">🔍</div>
                   <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
@@ -214,11 +285,14 @@ const ProductsPage = () => {
                       setSelectedCategory('all');
                       setSelectedPriceRange('all');
                       setSelectedRating(0);
+                      setSelectedFeatures([]);
+                      setSelectedBrand('all');
+                      setSearchQuery('');
                       setCurrentPage(1);
                     }}
                     className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
                   >
-                    {t('products.noResults.clearFilters')}
+                    清除筛选条件
                   </button>
                 </div>
               )}
