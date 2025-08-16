@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { clothingImages } from '@/lib/placeholderImages';
+import { useLocalization } from '@/contexts/LocalizationContext';
 
 // 产品分类类型定义
 interface Category {
@@ -33,10 +33,17 @@ interface Product {
 }
 
 export default function CategoriesPage() {
+  const { language, t } = useLocalization();
+
+  // 状态管理
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('default');
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
   const [showFilters, setShowFilters] = useState(false);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+
+  // 分页设置
+  const PRODUCTS_PER_PAGE = 4;
 
   // 模拟分类数据 - 根据需求文档设计
   const categories: Category[] = [
@@ -214,14 +221,98 @@ export default function CategoriesPage() {
     },
   ];
 
+  // 添加到购物车功能
+  const handleAddToCart = async (productId: string, quantity: number = 1) => {
+    try {
+      const response = await fetch('/api/cart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ productId, quantity }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        alert(t('cart.addSuccess') || '商品已添加到购物车！');
+      } else {
+        alert(result.error || t('cart.addError') || '添加失败');
+      }
+    } catch (error) {
+      console.error('Add to cart error:', error);
+      alert(t('cart.addError') || '添加失败，请稍后重试');
+    }
+  };
+
+  // 多语言排序选项
   const sortOptions = [
-    { value: 'default', label: '默认排序' },
-    { value: 'price-low', label: '价格从低到高' },
-    { value: 'price-high', label: '价格从高到低' },
-    { value: 'rating', label: '评分最高' },
-    { value: 'newest', label: '最新上架' },
-    { value: 'popular', label: '最受欢迎' },
+    { value: 'default', label: t('products.sort.default') || '默认排序' },
+    { value: 'price-low', label: t('products.sort.priceLow') || '价格从低到高' },
+    { value: 'price-high', label: t('products.sort.priceHigh') || '价格从高到低' },
+    { value: 'rating', label: t('products.sort.rating') || '评分最高' },
+    { value: 'newest', label: t('products.sort.newest') || '最新上架' },
+    { value: 'popular', label: t('products.sort.popular') || '最受欢迎' },
   ];
+
+  // 获取分类的多语言名称
+  const getCategoryName = (categorySlug: string): string => {
+    const categoryMap: { [key: string]: string } = {
+      'underwear': t('categories.underwear') || '内衣',
+      't-shirts': t('categories.tshirts') || 'T恤',
+      'jeans': t('categories.jeans') || '牛仔裤',
+      'pants': t('categories.pants') || '裤子',
+      'outerwear': t('categories.outerwear') || '外套',
+      'shoes': t('categories.shoes') || '鞋子',
+      'bras': t('categories.bras') || '文胸',
+      'sleepwear': t('categories.sleepwear') || '睡衣',
+      'activewear': t('categories.activewear') || '运动内衣',
+      'swimwear': t('categories.swimwear') || '泳装',
+      'accessories': t('categories.accessories') || '配饰',
+    };
+    return categoryMap[categorySlug] || categorySlug;
+  };
+
+  // 获取商品的多语言名称
+  const getProductName = (productId: string, defaultName: string): string => {
+    const productNameMap: { [key: string]: string } = {
+      '1': t('products.comfortableBra.name') || '无钢圈舒适文胸',
+      '2': t('products.classicWhiteTshirt.name') || '经典白色T恤',
+      '3': t('products.slimJeans.name') || '修身牛仔裤',
+      '4': t('products.businessCasualPants.name') || '商务休闲裤',
+      '5': t('products.fashionJacket.name') || '时尚夹克外套',
+      '6': t('products.comfortableSneakers.name') || '舒适运动鞋',
+      '7': t('products.laceUnderwearSet.name') || '蕾丝边内裤套装',
+      '8': t('products.printedLongSleeveTshirt.name') || '印花长袖T恤',
+    };
+    return productNameMap[productId] || defaultName;
+  };
+
+  // 获取标签的多语言翻译
+  const getTagTranslation = (tag: string): string => {
+    const tagMap: { [key: string]: string } = {
+      '舒适': t('tags.comfortable') || '舒适',
+      '无钢圈': t('tags.wireless') || '无钢圈',
+      '透气': t('tags.breathable') || '透气',
+      '经典': t('tags.classic') || '经典',
+      '百搭': t('tags.versatile') || '百搭',
+      '纯棉': t('tags.cotton') || '纯棉',
+      '修身': t('tags.slim') || '修身',
+      '弹性': t('tags.elastic') || '弹性',
+      '时尚': t('tags.fashion') || '时尚',
+      '商务': t('tags.business') || '商务',
+      '休闲': t('tags.casual') || '休闲',
+      '保暖': t('tags.warm') || '保暖',
+      '防风': t('tags.windproof') || '防风',
+      '运动': t('tags.sport') || '运动',
+      '蕾丝': t('tags.lace') || '蕾丝',
+      '套装': t('tags.set') || '套装',
+      '性感': t('tags.sexy') || '性感',
+      '印花': t('tags.printed') || '印花',
+      '长袖': t('tags.longSleeve') || '长袖',
+    };
+    return tagMap[tag] || tag;
+  };
 
   const filteredProducts = products.filter(product => {
     if (selectedCategory !== 'all' && product.category !== selectedCategory) {
@@ -250,6 +341,23 @@ export default function CategoriesPage() {
     }
   });
 
+  // 分页逻辑
+  const totalPages = Math.ceil(sortedProducts.length / PRODUCTS_PER_PAGE);
+  const startIndex = (currentPage - 1) * PRODUCTS_PER_PAGE;
+  const endIndex = startIndex + PRODUCTS_PER_PAGE;
+  const currentProducts = sortedProducts.slice(startIndex, endIndex);
+
+  // 分页处理函数
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // 当筛选条件改变时重置到第一页
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory, sortBy, priceRange]);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -257,42 +365,49 @@ export default function CategoriesPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* 页面标题 */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">产品分类</h1>
-          <p className="mt-2 text-gray-600">探索我们精心挑选的服装系列</p>
+          <h1 className="text-3xl font-bold text-gray-900">
+            {t('categories.title') || '产品分类'}
+          </h1>
+          <p className="mt-2 text-gray-600">
+            {t('categories.subtitle') || '探索我们精心挑选的服装系列'}
+          </p>
         </div>
 
         {/* 分类网格 */}
         <div className="mb-12">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6">热门分类</h2>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+            {t('categories.popular') || '热门分类'}
+          </h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
             {categories.map((category) => (
-              <Link
+              <button
                 key={category.id}
-                href={`/categories/${category.slug}`}
-                className="group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:scale-105"
+                onClick={() => setSelectedCategory(category.slug)}
+                className={`group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:scale-105 ${
+                  selectedCategory === category.slug ? 'ring-2 ring-blue-500' : ''
+                }`}
               >
                 <div className="aspect-w-4 aspect-h-3">
                   <img
                     src={category.image}
-                    alt={category.name}
+                    alt={getCategoryName(category.slug)}
                     className="w-full h-32 object-cover group-hover:scale-110 transition-transform duration-300"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       target.style.display = 'none';
                       const parent = target.parentElement;
                       if (parent) {
-                        parent.innerHTML = `<div class="w-full h-32 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-500 font-medium">${category.name}</div>`;
+                        parent.innerHTML = `<div class="w-full h-32 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-500 font-medium">${getCategoryName(category.slug)}</div>`;
                       }
                     }}
                   />
                 </div>
                 <div className="p-4">
                   <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
-                    {category.name}
+                    {getCategoryName(category.slug)}
                   </h3>
-                  <p className="text-sm text-gray-500 mt-1">{category.productCount} 件商品</p>
                 </div>
-              </Link>
+              </button>
             ))}
           </div>
         </div>
@@ -308,20 +423,22 @@ export default function CategoriesPage() {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z" />
                 </svg>
-                筛选
+                {t('products.filters') || '筛选'}
               </button>
-              
+
               <div className="hidden lg:flex items-center gap-4">
-                <span className="text-sm text-gray-600">分类:</span>
+                <span className="text-sm text-gray-600">
+                  {t('products.category') || '分类'}:
+                </span>
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
                   className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="all">全部分类</option>
+                  <option value="all">{t('categories.all') || '全部分类'}</option>
                   {categories.map((category) => (
                     <option key={category.id} value={category.slug}>
-                      {category.name}
+                      {getCategoryName(category.slug)}
                     </option>
                   ))}
                 </select>
@@ -329,7 +446,9 @@ export default function CategoriesPage() {
             </div>
 
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">排序:</span>
+              <span className="text-sm text-gray-600">
+                {t('products.sortBy') || '排序'}:
+              </span>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
@@ -341,9 +460,10 @@ export default function CategoriesPage() {
                   </option>
                 ))}
               </select>
-              
+
               <span className="text-sm text-gray-500">
-                共 {sortedProducts.length} 件商品
+                {t('products.totalItems')?.replace('{count}', sortedProducts.length.toString()) ||
+                 `共 ${sortedProducts.length} 件商品`}
               </span>
             </div>
           </div>
@@ -353,24 +473,26 @@ export default function CategoriesPage() {
             <div className="lg:hidden mt-6 pt-6 border-t border-gray-200">
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">分类</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('products.category') || '分类'}
+                  </label>
                   <select
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="all">全部分类</option>
+                    <option value="all">{t('categories.all') || '全部分类'}</option>
                     {categories.map((category) => (
                       <option key={category.id} value={category.slug}>
-                        {category.name}
+                        {getCategoryName(category.slug)}
                       </option>
                     ))}
                   </select>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    价格范围: ¥{priceRange[0]} - ¥{priceRange[1]}
+                    {t('products.priceRange') || '价格范围'}: ¥{priceRange[0]} - ¥{priceRange[1]}
                   </label>
                   <div className="flex items-center gap-4">
                     <input
@@ -398,7 +520,7 @@ export default function CategoriesPage() {
 
         {/* 产品网格 */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {sortedProducts.map((product) => (
+          {currentProducts.map((product) => (
             <div key={product.id} className="group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300">
               <div className="relative">
                 <img
@@ -415,12 +537,12 @@ export default function CategoriesPage() {
                 <div className="absolute top-3 left-3 flex flex-col gap-2">
                   {product.isNew && (
                     <span className="px-2 py-1 bg-green-500 text-white text-xs font-medium rounded-full">
-                      新品
+                      {t('products.labels.new') || '新品'}
                     </span>
                   )}
                   {product.isHot && (
                     <span className="px-2 py-1 bg-red-500 text-white text-xs font-medium rounded-full">
-                      热销
+                      {t('products.labels.hot') || '热销'}
                     </span>
                   )}
                   {product.discount && (
@@ -450,7 +572,7 @@ export default function CategoriesPage() {
 
               <div className="p-4">
                 <h3 className="font-medium text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                  {product.name}
+                  {getProductName(product.id, product.name)}
                 </h3>
                 
                 <div className="flex items-center gap-1 mb-2">
@@ -476,8 +598,11 @@ export default function CategoriesPage() {
                       <span className="text-sm text-gray-500 line-through">¥{product.originalPrice}</span>
                     )}
                   </div>
-                  <button className="px-3 py-1 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">
-                    加入购物车
+                  <button
+                    onClick={() => handleAddToCart(product.id)}
+                    className="px-3 py-1 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    {t('cart.addToCart') || '加入购物车'}
                   </button>
                 </div>
 
@@ -485,7 +610,7 @@ export default function CategoriesPage() {
                 <div className="flex flex-wrap gap-1 mt-2">
                   {product.tags.slice(0, 2).map((tag, index) => (
                     <span key={index} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                      {tag}
+                      {getTagTranslation(tag)}
                     </span>
                   ))}
                 </div>
@@ -495,25 +620,62 @@ export default function CategoriesPage() {
         </div>
 
         {/* 分页 */}
-        <div className="mt-12 flex justify-center">
-          <div className="flex items-center gap-2">
-            <button className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-              上一页
-            </button>
-            <button className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg">
-              1
-            </button>
-            <button className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-              2
-            </button>
-            <button className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-              3
-            </button>
-            <button className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-              下一页
-            </button>
+        {totalPages > 1 && (
+          <div className="mt-12 flex justify-center">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {t('pagination.previous') || '上一页'}
+              </button>
+
+              {/* 页码按钮 */}
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let pageNum;
+                if (totalPages <= 5) {
+                  pageNum = i + 1;
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1;
+                } else if (currentPage >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i;
+                } else {
+                  pageNum = currentPage - 2 + i;
+                }
+
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => handlePageChange(pageNum)}
+                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                      currentPage === pageNum
+                        ? 'text-white bg-blue-600'
+                        : 'text-gray-500 hover:text-gray-700 border border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {t('pagination.next') || '下一页'}
+              </button>
+            </div>
+
+            <div className="ml-8 flex items-center text-sm text-gray-500">
+              {t('pagination.info')
+                ?.replace('{current}', currentPage.toString())
+                ?.replace('{total}', totalPages.toString()) ||
+                `第 ${currentPage} 页，共 ${totalPages} 页`}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <Footer />
