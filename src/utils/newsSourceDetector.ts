@@ -3,6 +3,7 @@ import { NewsSource, NewsSourceConfig } from '@/types/collection'
 
 // 新闻源配置
 export const newsSourceConfigs: Record<NewsSource, NewsSourceConfig> = {
+  // 国际时尚媒体
   'vogue': {
     id: 'vogue',
     name: 'Vogue',
@@ -185,6 +186,152 @@ export const newsSourceConfigs: Record<NewsSource, NewsSourceConfig> = {
     }
   },
   
+  // 中文新闻网站
+  'netease': {
+    id: 'netease',
+    name: '网易新闻',
+    description: '网易新闻资讯',
+    icon: '📰',
+    baseUrl: 'https://www.163.com',
+    enabled: true,
+    rateLimit: 20,
+    selectors: {
+      title: ['h1.post_title', '.post_title', 'h1', '.article-title', '.title'],
+      content: ['.post_body', '.post_text', '.article-content', '.content', 'article'],
+      excerpt: ['.post_info', '.summary', '.excerpt'],
+      author: ['.ep-editor', '.author', '.post_author'],
+      publishDate: ['.post_time', '.time', '.publish-time'],
+      tags: ['.post_tag a', '.tags a'],
+      category: ['.post_nav a', '.category'],
+      featuredImage: ['.post_body img:first-child', '.article img:first-child'],
+      images: ['.post_body img', '.article img', '.content img']
+    },
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8'
+    },
+    contentProcessing: {
+      removeSelectors: ['.ad', '.advertisement', '.ne-ad', '.gg', '.comment'],
+      cleanHtml: true,
+      extractText: true,
+      minLength: 100,
+      maxLength: 20000
+    }
+  },
+  
+  'sina': {
+    id: 'sina',
+    name: '新浪新闻',
+    description: '新浪网新闻资讯',
+    icon: '📱',
+    baseUrl: 'https://news.sina.com.cn',
+    enabled: true,
+    rateLimit: 20,
+    selectors: {
+      title: ['.main-title', 'h1.title', 'h1', '.article-title'],
+      content: ['.article', '.article-content', '.content', '#artibody'],
+      excerpt: ['.summary', '.excerpt'],
+      author: ['.article-info .author', '.source', '.media'],
+      publishDate: ['.time', '.article-info .time', '.pub-time'],
+      tags: ['.tag a', '.keywords a'],
+      category: ['.nav a', '.breadcrumb a'],
+      featuredImage: ['.img_wrapper img', '.article img:first-child'],
+      images: ['.article img', '.content img']
+    },
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+    },
+    contentProcessing: {
+      removeSelectors: ['.ad', '.advertisement', '.comment', '.related'],
+      cleanHtml: true,
+      extractText: true,
+      minLength: 100
+    }
+  },
+  
+  'tencent': {
+    id: 'tencent',
+    name: '腾讯新闻',
+    description: '腾讯网新闻资讯',
+    icon: '📲',
+    baseUrl: 'https://new.qq.com',
+    enabled: true,
+    rateLimit: 20,
+    selectors: {
+      title: ['.LEFT .title', '.content-article .title', 'h1'],
+      content: ['.content-article .content', '.LEFT .content', '.article-content'],
+      author: ['.article-info .author', '.where'],
+      publishDate: ['.article-info .time', '.where .time'],
+      tags: ['.tag a'],
+      category: ['.nav a'],
+      featuredImage: ['.content img:first-child'],
+      images: ['.content img']
+    },
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+    }
+  },
+  
+  'sohu': {
+    id: 'sohu',
+    name: '搜狐新闻',
+    description: '搜狐网新闻资讯',
+    icon: '🦊',
+    baseUrl: 'https://www.sohu.com',
+    enabled: true,
+    rateLimit: 20,
+    selectors: {
+      title: ['.text-title h1', '.article-title', 'h1'],
+      content: ['.article-text', '.article-content', '.content'],
+      author: ['.article-info .name', '.author'],
+      publishDate: ['.article-info .time', '.time'],
+      tags: ['.tag-list a'],
+      featuredImage: ['.article-text img:first-child'],
+      images: ['.article-text img', '.content img']
+    },
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+    }
+  },
+  
+  'xinhua': {
+    id: 'xinhua',
+    name: '新华网',
+    description: '新华网新闻',
+    icon: '🇨🇳',
+    baseUrl: 'http://www.xinhuanet.com',
+    enabled: true,
+    rateLimit: 15,
+    selectors: {
+      title: ['.title', 'h1', '.article-title'],
+      content: ['.article', '#detail', '.content'],
+      author: ['.author', '.source'],
+      publishDate: ['.time', '.pub-time'],
+      tags: ['.tag a'],
+      featuredImage: ['.article img:first-child'],
+      images: ['.article img', '.content img']
+    }
+  },
+  
+  'peopledaily': {
+    id: 'peopledaily',
+    name: '人民日报',
+    description: '人民网新闻',
+    icon: '🇨🇳',
+    baseUrl: 'http://www.people.com.cn',
+    enabled: true,
+    rateLimit: 15,
+    selectors: {
+      title: ['.title_txt', '.article_title', 'h1'],
+      content: ['.show_text', '.article_content', '.rm_txt_con'],
+      author: ['.article_info .author', '.source'],
+      publishDate: ['.article_info .time', '.time'],
+      tags: ['.tag_list a'],
+      featuredImage: ['.show_text img:first-child'],
+      images: ['.show_text img', '.article_content img']
+    }
+  },
+  
   'rss': {
     id: 'rss',
     name: 'RSS订阅',
@@ -216,20 +363,38 @@ export const newsSourceConfigs: Record<NewsSource, NewsSourceConfig> = {
     enabled: true,
     rateLimit: 20,
     selectors: {
-      title: ['h1', '.title', '.headline'],
-      content: ['.content', '.article', '.post-content', 'article'],
-      excerpt: ['.excerpt', '.summary', '.description'],
-      author: ['.author', '.byline', '.writer'],
-      publishDate: ['time', '.date', '.publish-date'],
-      tags: ['.tags a', '.categories a'],
-      featuredImage: ['.featured-image img', '.hero-image img'],
-      images: ['.content img', 'article img']
+      // 中英文网站通用选择器
+      title: [
+        'h1', '.title', '.headline', '.article-title', '.post-title', 
+        '.content-title', '.news-title', '.main-title', '.text-title h1',
+        '.post_title', '.article_title'
+      ],
+      content: [
+        '.content', '.article', '.post-content', 'article', '.article-content',
+        '.text', '.article-text', '.post-text', '.main-content', '.detail-content',
+        '.post_body', '.post_text', '.show_text', '.article_content'
+      ],
+      excerpt: ['.excerpt', '.summary', '.description', '.post_info'],
+      author: [
+        '.author', '.byline', '.writer', '.article-author', '.post-author',
+        '.ep-editor', '.article-info .author', '.source', '.media'
+      ],
+      publishDate: [
+        'time', '.date', '.publish-date', '.time', '.post-time', '.pub-time',
+        '.article-info .time', '.post_time'
+      ],
+      tags: ['.tags a', '.categories a', '.tag a', '.post-tags a'],
+      featuredImage: ['.featured-image img', '.hero-image img', '.main-image img'],
+      images: ['.content img', 'article img', '.post-content img', '.article img']
     },
     contentProcessing: {
-      removeSelectors: ['.ad', '.advertisement', '.social', '.sidebar'],
+      removeSelectors: [
+        '.ad', '.advertisement', '.social', '.sidebar', '.comment', 
+        '.related', '.ne-ad', '.gg', '.footer', '.header-nav'
+      ],
       cleanHtml: true,
       extractText: true,
-      minLength: 100
+      minLength: 50 // 降低最小长度要求
     }
   }
 }
@@ -249,9 +414,43 @@ export function detectNewsSource(url: string): { source: NewsSource | null; conf
     const baseUrl = config.baseUrl.toLowerCase()
     const domain = baseUrl.replace(/^https?:\/\//, '').replace(/^www\./, '')
     
+    // 精确匹配域名
     if (cleanUrl.includes(domain)) {
       return {
         source: sourceId as NewsSource,
+        confidence: 0.95,
+        config
+      }
+    }
+    
+    // 特殊处理一些网站的多个域名
+    if (sourceId === 'netease' && (cleanUrl.includes('163.com') || cleanUrl.includes('netease.com'))) {
+      return {
+        source: 'netease',
+        confidence: 0.95,
+        config
+      }
+    }
+    
+    if (sourceId === 'sina' && (cleanUrl.includes('sina.com') || cleanUrl.includes('weibo.com'))) {
+      return {
+        source: 'sina',
+        confidence: 0.95,
+        config
+      }
+    }
+    
+    if (sourceId === 'tencent' && (cleanUrl.includes('qq.com') || cleanUrl.includes('tencent.com'))) {
+      return {
+        source: 'tencent',
+        confidence: 0.95,
+        config
+      }
+    }
+    
+    if (sourceId === 'sohu' && cleanUrl.includes('sohu.com')) {
+      return {
+        source: 'sohu',
         confidence: 0.95,
         config
       }

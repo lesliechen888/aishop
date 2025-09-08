@@ -4,7 +4,7 @@
 export type Platform = '1688' | 'pdd' | 'douyin' | 'taobao' | 'temu' | 'jd'
 
 // 新闻采集平台类型
-export type NewsSource = 'vogue' | 'elle' | 'harpersbazaar' | 'cosmopolitan' | 'fashionweek' | 'wwd' | 'fashionista' | 'hypebeast' | 'rss' | 'custom'
+export type NewsSource = 'vogue' | 'elle' | 'harpersbazaar' | 'cosmopolitan' | 'fashionweek' | 'wwd' | 'fashionista' | 'hypebeast' | 'netease' | 'sina' | 'tencent' | 'sohu' | 'xinhua' | 'peopledaily' | 'rss' | 'custom'
 
 // 采集方式
 export type CollectionMethod = 'single' | 'batch' | 'shop'

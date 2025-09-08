@@ -39,26 +39,62 @@ export class NewsParsingEngine {
   // 解析新闻文章
   async parseNewsArticle(url: string, taskId: string): Promise<NewsParseResult> {
     try {
+      console.log(`开始解析新闻文章: ${url}`)
+      
       // 检测新闻源
       const detection = detectNewsSource(url)
-      if (!detection.source || !detection.config) {
+      console.log(`新闻源检测结果:`, detection)
+      
+      if (!detection.source) {
+        console.log(`未能识别新闻源，使用自定义配置`)
+        // 使用自定义配置作为备选
+        detection.source = 'custom'
+        const customConfig = getNewsSourceConfig('custom')
+        if (customConfig) {
+          detection.config = customConfig
+        }
+      }
+      
+      if (!detection.config) {
         return {
           success: false,
-          error: '无法识别新闻源或获取配置'
+          error: '无法获取新闻源配置'
         }
       }
 
       // 获取页面内容
+      console.log(`获取页面内容: ${url}`)
       const html = await this.fetchHtml(url, detection.source)
       if (!html) {
         return {
           success: false,
-          error: '无法获取页面内容'
+          error: '无法获取页面内容，可能是网络问题或页面不存在'
         }
       }
 
+      console.log(`页面内容获取成功，开始解析...`)
+      
       // 解析内容
       const article = await this.extractArticleContent(html, url, detection.config, taskId, detection.source)
+      
+      // 验证解析结果
+      if (!article.title || article.title.trim().length === 0) {
+        return {
+          success: false,
+          error: '无法提取文章标题，可能是页面结构不兼容',
+          warnings: ['请检查URL是否正确，或者网站的页面结构可能发生了变化']
+        }
+      }
+      
+      if (!article.content || article.content.trim().length < 50) {
+        return {
+          success: false,
+          error: '无法提取有效的文章内容，内容太短或为空',
+          warnings: ['可能是付费内容、登录限制或页面结构问题']
+        }
+      }
+      
+      console.log(`文章解析成功: ${article.title}`)
       
       return {
         success: true,
@@ -68,7 +104,8 @@ export class NewsParsingEngine {
       console.error('新闻解析错误:', error)
       return {
         success: false,
-        error: error instanceof Error ? error.message : '解析失败'
+        error: error instanceof Error ? error.message : '解析失败，未知错误',
+        warnings: ['请检查网络连接和 URL 是否正确']
       }
     }
   }
@@ -131,8 +168,20 @@ export class NewsParsingEngine {
     try {
       const headers = generateHeaders(source)
       
+      // 为中文网站添加特殊处理
+      if (['netease', 'sina', 'tencent', 'sohu'].includes(source)) {
+        headers['Accept-Language'] = 'zh-CN,zh;q=0.9,en;q=0.8'
+        headers['Cache-Control'] = 'no-cache'
+      }
+      
+      console.log(`获取页面: ${url}`)
+      console.log(`使用 headers:`, headers)
+      
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), this.config.timeout)
+      const timeoutId = setTimeout(() => {
+        console.log('请求超时，取消请求')
+        controller.abort()
+      }, this.config.timeout)
       
       const response = await fetch(url, {
         headers,
@@ -140,14 +189,34 @@ export class NewsParsingEngine {
       })
 
       clearTimeout(timeoutId)
+      
+      console.log(`响应状态: ${response.status} ${response.statusText}`)
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+        // 对于某些网站，403/404 可能是反爬虫机制
+        if (response.status === 403) {
+          throw new Error(`访问被拒绝 (403)，可能是反爬虫机制。请检查URL是否需要登录或者网站有访问限制。`)
+        } else if (response.status === 404) {
+          throw new Error(`页面不存在 (404)，请检查URL是否正确。`)
+        } else if (response.status === 429) {
+          throw new Error(`请求过于频繁 (429)，请稍后再试。`)
+        } else {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+        }
       }
 
-      return await response.text()
+      const html = await response.text()
+      console.log(`页面内容获取成功，长度: ${html.length} 字符`)
+      
+      return html
     } catch (error) {
-      console.error('获取HTML失败:', error)
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          console.error('请求超时')
+        } else {
+          console.error('获取HTML失败:', error.message)
+        }
+      }
       return null
     }
   }
@@ -376,9 +445,17 @@ export class NewsParsingEngine {
   // 提取文本
   private extractText($: any, selectors: string[]): string {
     for (const selector of selectors) {
-      const element = $(selector).first()
-      if (element.length) {
-        return element.text().trim()
+      try {
+        const element = $(selector).first()
+        if (element.length) {
+          const text = element.text().trim()
+          if (text && text.length > 0) {
+            return text
+          }
+        }
+      } catch (error) {
+        console.warn(`选择器错误: ${selector}`, error)
+        continue
       }
     }
     return ''
@@ -387,21 +464,57 @@ export class NewsParsingEngine {
   // 提取内容
   private extractContent($: any, selectors: string[], config: NewsSourceConfig): string {
     for (const selector of selectors) {
-      const element = $(selector).first()
-      if (element.length) {
-        let content = element.html() || ''
-        
-        if (config.contentProcessing?.cleanHtml) {
-          content = this.cleanHtml(content)
+      try {
+        const element = $(selector).first()
+        if (element.length) {
+          let content = element.html() || ''
+          
+          if (content && content.trim().length > 0) {
+            if (config.contentProcessing?.cleanHtml) {
+              content = this.cleanHtml(content)
+            }
+            
+            if (config.contentProcessing?.extractText) {
+              content = $(content).text().trim()
+            }
+            
+            // 过滤太短的内容
+            if (content.length >= (config.contentProcessing?.minLength || 50)) {
+              return content
+            }
+          }
         }
-        
-        if (config.contentProcessing?.extractText) {
-          content = $(content).text().trim()
-        }
-        
-        return content
+      } catch (error) {
+        console.warn(`内容选择器错误: ${selector}`, error)
+        continue
       }
     }
+    
+    // 如果所有选择器都失败，尝试备用方案
+    console.log('所有内容选择器都失败，尝试备用方案')
+    const fallbackSelectors = ['p', '.text', '.txt', 'div']
+    
+    for (const selector of fallbackSelectors) {
+      try {
+        const elements = $(selector)
+        let combinedText = ''
+        
+        elements.each((_: number, element: any) => {
+          const text = $(element).text().trim()
+          if (text && text.length > 20) {
+            combinedText += text + '\n\n'
+          }
+        })
+        
+        if (combinedText.length > 100) {
+          console.log(`使用备用选择器 ${selector} 获取内容`)
+          return combinedText.trim()
+        }
+      } catch (error) {
+        continue
+      }
+    }
+    
     return ''
   }
 
