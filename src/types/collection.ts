@@ -3,6 +3,9 @@
 // 支持的平台类型
 export type Platform = '1688' | 'pdd' | 'douyin' | 'taobao' | 'temu' | 'jd'
 
+// 新闻采集平台类型
+export type NewsSource = 'vogue' | 'elle' | 'harpersbazaar' | 'cosmopolitan' | 'fashionweek' | 'wwd' | 'fashionista' | 'hypebeast' | 'rss' | 'custom'
+
 // 采集方式
 export type CollectionMethod = 'single' | 'batch' | 'shop'
 
@@ -279,4 +282,293 @@ export interface ContentFilterConfig {
     chineseRegions: RegExp
   }
   replacements: Record<string, string>
+}
+
+// ===== 新闻采集相关类型 =====
+
+// 新闻采集任务
+export interface NewsCollectionTask {
+  id: string
+  name: string
+  source: NewsSource
+  status: CollectionStatus
+  urls: string[]
+  rssUrl?: string
+  keywords: string[]
+  categories: string[]
+  totalArticles: number
+  collectedArticles: number
+  failedArticles: number
+  progress: number
+  startTime: string
+  endTime?: string
+  errorMessage?: string
+  settings: NewsCollectionSettings
+  createdBy: string
+  createdAt: string
+  updatedAt: string
+}
+
+// 新闻采集设置
+export interface NewsCollectionSettings {
+  // 基础设置
+  maxArticles: number
+  timeout: number
+  retryCount: number
+  delay: number
+  
+  // 内容过滤
+  enableContentFilter: boolean
+  filterKeywords: string[]
+  minContentLength: number
+  maxContentLength: number
+  
+  // 时间范围
+  dateRange: {
+    start?: string
+    end?: string
+  }
+  
+  // 图片设置
+  downloadImages: boolean
+  maxImages: number
+  imageQuality: 'low' | 'medium' | 'high'
+  
+  // 内容处理
+  extractSummary: boolean
+  translateContent: boolean
+  targetLanguage?: string
+  removeDuplicates: boolean
+  
+  // SEO设置
+  generateSeoTags: boolean
+  autoSlug: boolean
+}
+
+// 采集的新闻文章数据
+export interface CollectedNewsArticle {
+  id: string
+  taskId: string
+  source: NewsSource
+  originalUrl: string
+  
+  // 基础信息
+  title: string
+  slug?: string
+  content: string
+  summary?: string
+  excerpt?: string
+  
+  // 分类和标签
+  category?: string
+  tags: string[]
+  keywords: string[]
+  
+  // 媒体资源
+  featuredImage?: string
+  images: string[]
+  videos?: string[]
+  
+  // 作者信息
+  author?: {
+    name: string
+    avatar?: string
+    bio?: string
+    email?: string
+  }
+  
+  // 发布信息
+  publishedAt?: string
+  updatedAt?: string
+  sourcePublishedAt?: string
+  
+  // 统计数据
+  views?: number
+  likes?: number
+  shares?: number
+  comments?: number
+  readTime?: number
+  
+  // SEO信息
+  seoTitle?: string
+  seoDescription?: string
+  seoKeywords?: string[]
+  
+  // 原始数据
+  rawData: Record<string, any>
+  
+  // 状态信息
+  status: 'draft' | 'pending_review' | 'approved' | 'published' | 'rejected'
+  filterResults: NewsFilterResult[]
+  
+  // 语言和本地化
+  language: string
+  translatedVersions?: Record<string, string>
+  
+  // 时间戳
+  collectedAt: string
+  processedAt?: string
+}
+
+// 新闻过滤结果
+export interface NewsFilterResult {
+  type: 'keyword' | 'content' | 'date' | 'duplicate' | 'language'
+  field: string
+  originalValue: string
+  filteredValue?: string
+  action: 'removed' | 'replaced' | 'flagged' | 'rejected'
+  reason: string
+}
+
+// 新闻源配置
+export interface NewsSourceConfig {
+  id: NewsSource
+  name: string
+  description: string
+  icon: string
+  baseUrl: string
+  enabled: boolean
+  rateLimit: number // 每分钟请求限制
+  
+  // 抓取配置
+  selectors: {
+    title: string[]
+    content: string[]
+    excerpt?: string[]
+    author?: string[]
+    publishDate?: string[]
+    tags?: string[]
+    category?: string[]
+    featuredImage?: string[]
+    images?: string[]
+  }
+  
+  // RSS配置
+  rssUrl?: string
+  rssConfig?: {
+    titleField: string
+    linkField: string
+    descriptionField: string
+    dateField: string
+    authorField?: string
+    categoryField?: string
+  }
+  
+  // 请求配置
+  headers?: Record<string, string>
+  cookies?: string
+  userAgent?: string
+  
+  // 内容处理
+  contentProcessing?: {
+    removeSelectors?: string[] // 要移除的元素选择器
+    cleanHtml?: boolean
+    extractText?: boolean
+    minLength?: number
+    maxLength?: number
+  }
+}
+
+// 新闻采集统计
+export interface NewsCollectionStats {
+  totalTasks: number
+  completedTasks: number
+  totalArticles: number
+  publishedArticles: number
+  sourceStats: Record<NewsSource, {
+    tasks: number
+    articles: number
+    successRate: number
+  }>
+  categoryStats: Record<string, number>
+  recentActivity: NewsCollectionActivity[]
+}
+
+// 新闻采集活动记录
+export interface NewsCollectionActivity {
+  id: string
+  type: 'task_created' | 'task_completed' | 'article_collected' | 'article_published' | 'filter_applied'
+  message: string
+  details?: Record<string, any>
+  timestamp: string
+}
+
+// RSS解析结果
+export interface RSSParseResult {
+  title: string
+  description: string
+  link: string
+  items: RSSItem[]
+  lastBuildDate?: string
+  language?: string
+  image?: {
+    url: string
+    title: string
+    link: string
+  }
+}
+
+export interface RSSItem {
+  title: string
+  link: string
+  description: string
+  pubDate?: string
+  author?: string
+  category?: string[]
+  guid?: string
+  enclosure?: {
+    url: string
+    type: string
+    length?: number
+  }
+}
+
+// 新闻内容解析结果
+export interface NewsParseResult {
+  success: boolean
+  article?: CollectedNewsArticle
+  error?: string
+  warnings?: string[]
+}
+
+// 新闻批量编辑规则
+export interface NewsBatchEditRule {
+  id: string
+  name: string
+  description: string
+  enabled: boolean
+  conditions: NewsRuleCondition[]
+  actions: NewsRuleAction[]
+  createdAt: string
+  updatedAt: string
+}
+
+// 新闻规则条件
+export interface NewsRuleCondition {
+  field: 'title' | 'content' | 'category' | 'tags' | 'author' | 'source' | 'date'
+  operator: 'equals' | 'contains' | 'startsWith' | 'endsWith' | 'regex' | 'dateRange'
+  value: any
+  caseSensitive?: boolean
+}
+
+// 新闻规则动作
+export interface NewsRuleAction {
+  type: 'replace' | 'append' | 'prepend' | 'remove' | 'categorize' | 'tag' | 'translate'
+  field: 'title' | 'content' | 'category' | 'tags' | 'status' | 'seoTitle' | 'seoDescription'
+  value?: any
+  targetLanguage?: string // 用于翻译
+}
+
+// 新闻采集 API 响应类型
+export interface NewsCollectionApiResponse<T = any> {
+  success: boolean
+  data?: T
+  message?: string
+  error?: string
+  pagination?: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
 }

@@ -12,6 +12,7 @@ import SmartCollection from './SmartCollection';
 import CollectionBox from './CollectionBox';
 import ProductCollection from './ProductCollection';
 import TestPage from './TestPage';
+import NewsCollection from './NewsCollection';
 
 interface AdminUser {
   id: string;
@@ -108,6 +109,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         return <ApiSettings />;
       case 'content':
         return <TestPage />;
+      case 'news-collection':
+        return <NewsCollection onCollectionComplete={() => {}} />;
       case 'countries':
         return <TestPage />;
       case 'basic-settings':
@@ -195,10 +198,22 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     },
     {
       name: '内容管理',
-      key: 'content',
+      key: 'content-management',
       icon: '📝',
       permission: 'content',
-      type: 'single'
+      type: 'group',
+      children: [
+        {
+          name: '内容编辑',
+          key: 'content',
+          permission: 'content'
+        },
+        {
+          name: '新闻采集',
+          key: 'news-collection',
+          permission: 'content'
+        }
+      ]
     },
     {
       name: '多国家设置',
